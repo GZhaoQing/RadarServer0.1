@@ -1,7 +1,9 @@
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.radar.Data4Json;
 import com.radar.FileParser;
 import com.radar.RadarFile;
 import org.junit.Test;
+
 import ucar.nc2.NCdumpW;
 
 import java.io.IOException;
@@ -47,6 +49,15 @@ public class TestPaser {
         FileParser p=new FileParser();
         String fileIn=System.getProperty("user.dir")+"\\src\\main\\resources\\spherical_pressure_level.grib1";
         RadarFile rf=p.readWithImg(fileIn,"");
+        ObjectMapper mapper=new ObjectMapper();
+        String j=mapper.writeValueAsString(rf);
+        System.out.println(j);
+    }
+    @Test
+    public void  Test2JsonD() throws IOException {
+        FileParser p=new FileParser();
+        String fileIn=System.getProperty("user.dir")+"\\src\\main\\resources\\SATE_L2_F2G_VISSR_MWB_LBT_SEC_LCN-IR2-20170527-0100.AWX";
+        Data4Json rf=p.readGridData(fileIn);
         ObjectMapper mapper=new ObjectMapper();
         String j=mapper.writeValueAsString(rf);
         System.out.println(j);

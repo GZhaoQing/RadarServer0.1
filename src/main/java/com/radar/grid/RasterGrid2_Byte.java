@@ -13,15 +13,17 @@ package com.radar.grid;
 //import java.util.ArrayList;
 //import java.util.List;
 
+import com.radar.Data4Json;
+
 /**
  * Created by Administrator on 2017/7/24.
  */
-public class RasterGrid2_Byte extends RasterGrid2 {
+public class RasterGrid2_Byte extends RasterGrid2 implements Data4Json {
 //   private  Byte m_NoData = -127;
-    public byte[][] m_data;
+    public Byte[][] m_data;
     public byte m_NoData = 0;
 
-    public RasterGrid2_Byte(float llx, float lly, float cellSize, int nRows, int nCols, byte[][] curData){
+    public RasterGrid2_Byte(float llx, float lly, float cellSize, int nRows, int nCols, Byte[][] curData){
         m_llx = llx;
         m_lly = lly;
         m_cellSize = cellSize;

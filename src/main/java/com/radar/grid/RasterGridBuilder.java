@@ -21,10 +21,10 @@ public class RasterGridBuilder {
     public RasterGrid2_Byte build(Variable var,List<CoordinateAxis> axisList) throws IOException {
         float llx = 0;
         float lly = 0 ;
-        float cellSize = 0 ;
-        int nRows = 0 ;
-        int nCols = 0;
-        byte[][] curData = null;
+        float cellSize = -1 ;
+        int nRows = -1 ;
+        int nCols = -1;
+        Byte[][] curData = null;
         float maxX = 0;
         float maxY = 0;
 
@@ -40,17 +40,19 @@ public class RasterGridBuilder {
         while(it.hasNext()){
             d=(Dimension) it.next();
             for(CoordinateAxis axis:axisList){
-                AxisType type=axis.getAxisType();
-                if(type==AxisType.GeoX){
-                    nRows=d.getLength();
-                    llx=(float) axis.getMinValue();
-                    maxX=(float) axis.getMaxValue();
-                    break;
-                }else if(type==AxisType.GeoY){
-                    nCols=d.getLength();
-                    lly=(float) axis.getMinValue();
-                    maxY=(float) axis.getMaxValue();
-                    break;
+                if(d.getFullName().equals(axis.getFullName())){
+                    AxisType type=axis.getAxisType();
+                    if(nRows==-1 && type==AxisType.GeoX){
+                        nRows=d.getLength();
+                        llx=(float) axis.getMinValue();
+                        maxX=(float) axis.getMaxValue();
+                        break;
+                    }else if(nCols==-1 && type==AxisType.GeoY){
+                        nCols=d.getLength();
+                        lly=(float) axis.getMinValue();
+                        maxY=(float) axis.getMaxValue();
+                        break;
+                    }
                 }
             }
         }
@@ -61,7 +63,7 @@ public class RasterGridBuilder {
             cellSize=(maxX-llx)/nCols;
         }
         //data rebuild
-        curData=new byte[nRows][nCols];
+        curData=new Byte[nRows][nCols];
         for(int i=0;i<nRows;i++){
             for(int j=0;j<nCols;j++){
                 curData[i][j]=array.getByte(i*nRows+j);

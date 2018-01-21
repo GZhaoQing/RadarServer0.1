@@ -1,5 +1,5 @@
 import com.radar.FileParser;
-import com.radar.radargrid.RasterGrid2_Byte;
+import com.radar.grid.RasterGrid2_Byte;
 import org.junit.Test;
 import ucar.nc2.NCdumpW;
 import ucar.nc2.constants.FeatureType;
