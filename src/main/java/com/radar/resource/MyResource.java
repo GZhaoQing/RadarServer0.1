@@ -54,7 +54,7 @@ public class MyResource {
         try {
             double ts = System.currentTimeMillis();
             //KFWD_SDUS64_NCZGRK_201208150212,KEWX_SDUS54_N0VEWX_201707270600,SATE_L2_F2G_VISSR_MWB_LBT_SEC_LCN-IR2-20170527-0100.AWX
-            String filePath = Thread.currentThread().getContextClassLoader().getResource("file").toString();
+            String filePath = Thread.currentThread().getContextClassLoader().getResource(file).toString();
             String imagePath = context.getResource("img").getPath();
 
             RadarFile rf = p.readWithImg(filePath, imagePath);

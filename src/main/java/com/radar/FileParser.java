@@ -376,10 +376,12 @@ public class FileParser {
         private List<CoordinateAxis> axisList;
 
         public SimpleDataModule(FeatureType type,VariableSimpleIF var) {
+            this.type=type;
             this.var = var;
         }
 
         public SimpleDataModule(FeatureType type,VariableSimpleIF var, List<CoordinateAxis> axisList) {
+            this.type=type;
             this.var = var;
             this.axisList = axisList;
         }
