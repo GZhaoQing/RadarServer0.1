@@ -8,6 +8,8 @@ package com.radar.grid;
  */
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /*******该类用于二维栅格数据的处理****************************************************/
 public abstract class RasterGrid2  extends  RasterGridBase{
 
@@ -27,10 +29,11 @@ public abstract class RasterGrid2  extends  RasterGridBase{
         m_nRows = oriRasterGrid.m_nRows;
         m_nCols = oriRasterGrid.m_nCols;
     }
-
+    @JsonIgnore
     public float get_xMax(){
         return (m_llx + m_cellSize * m_nCols);
     }
+    @JsonIgnore
     public float get_yMax() { return (m_lly + m_cellSize * m_nRows);}
 
 
