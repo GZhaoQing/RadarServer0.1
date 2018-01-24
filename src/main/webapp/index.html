@@ -7,6 +7,10 @@
         li{
             
         }
+
+        #square{
+            border: 1px solid #000;
+        }
     </style>
     <script type="text/javascript" src="https://cdn.bootcss.com/jquery/3.2.0/jquery.min.js"></script>
     <script type="text/javascript">
@@ -27,6 +31,7 @@
             }
         );
     </script>
+    
 </head>
 <body>
     <div>
@@ -41,6 +46,77 @@
                 
             </dl>
         </div>
+        <CANVAS id="square">Your browser does not support the HTML5 canvas tag.</CANVAS>
     </div>
+    <script type="text/javascript">
+        var colors1=[[0.98,0.98,0.98,1],
+                    [0.75,0.75,0.99,1],
+                    [0.47,0.44,0.93,1],
+                    [0.11,0.14,0.81,1],
+                    [0.65,0.98,0.65,1],
+                    [0,0.91,0,1],
+                    [0.06,0.57,0.1,1],
+                    [0.98,0.95,0.39,1],
+                    [0.78,0.78,0.007,1],
+                    [0.54,0.54,0,1],
+                    [0.99,0.67,0.67,1],
+                    [0.99,0.39,0.36,1],
+                    [0.93,0.007,0.18,1],
+                    [0.83,0.55,1,1],
+                    [0.66,0.14,0.98,1]];
+        getData("SATE_L2_F2G_VISSR_MWB_LBT_SEC_LCN-IR2-20170527-0100.AWX");
+        //"KFWD_SDUS64_NCZGRK_201208150217"
+        function getData(file){
+            var json;
+                $.ajax({
+                    url:'/radar/rest/r/filesD/'+file,
+                    type:"GET",
+                    async:false,
+                    success:function(result){
+                        json=JSON.parse(result)
+                        if(json.hasOwnProperty("m_data")){
+                            data=json.m_data;
+                        }
+                        createGridImage_Satellite(data,data[0].length,data.length);
+                    }
+                });
+        }
+        function createGridImage_Radar(data,width,height){
+            var canvas = document.getElementById('square');
+            canvas.width=width;
+            canvas.height=height;
+            var ctx=canvas.getContext("2d");
+            var imageData=ctx.getImageData(0,0,width,height);
+            for(var i=0;i<height;i++){
+                for(var j=0;j<width;j++){
+                    var x=i*width+j;
+                    var rgba=colors1[data[i][j]];
+                    imageData.data[x*4]=rgba[0]*255;
+                    imageData.data[x*4+1]=rgba[1]*255;
+                    imageData.data[x*4+2]=rgba[2]*255;
+                    imageData.data[x*4+3]=rgba[3]*255;
+                }
+            }
+            ctx.putImageData(imageData,0,0)
+        }
+        function createGridImage_Satellite(data,width,height){
+            var canvas = document.getElementById('square');
+            canvas.width=width;
+            canvas.height=height;
+            var ctx=canvas.getContext("2d");
+            var imageData=ctx.getImageData(0,0,width,height);
+            for(var i=0;i<height;i++){
+                for(var j=0;j<width;j++){
+                    var x=i*width+j;
+                    var gray=data[i][j];
+                    imageData.data[x*4]=gray&0xFF;
+                    imageData.data[x*4+1]=gray&0xFF;
+                    imageData.data[x*4+2]=gray&0xFF;
+                    imageData.data[x*4+3]=255;
+                }
+            }
+            ctx.putImageData(imageData,0,0)
+        }
+    </script>
 </body>
 </html>
