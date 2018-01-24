@@ -1,11 +1,21 @@
 package com.radar;
 
 public class RadarFile {
-    RadarHeadfile headfile;
-    String imgUrl;
+    private RadarHeadfile headfile;
+    private int imgType;
+    private Data4Json imgData;
+    private String imgUrl;
 
     public RadarHeadfile getHeadfile() {
         return headfile;
+    }
+
+    public int getImgType() {
+        return imgType;
+    }
+
+    public Data4Json getImgData() {
+        return imgData;
     }
 
     public String getImgUrl() {
@@ -18,5 +28,12 @@ public class RadarFile {
 
     public void setImgUrl(String imgUrl) {
         this.imgUrl = imgUrl;
+    }
+    public void setImgType(int imgType) {
+        this.imgType = imgType;
+    }
+
+    public void setImgData(Data4Json imgData) {
+        this.imgData = imgData;
     }
 }

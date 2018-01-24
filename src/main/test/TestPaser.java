@@ -47,7 +47,7 @@ public class TestPaser {
     @Test
     public void  Test2Json() throws IOException {
         FileParser p=new FileParser();
-        String fileIn=System.getProperty("user.dir")+"\\src\\main\\resources\\spherical_pressure_level.grib1";
+        String fileIn=System.getProperty("user.dir")+"\\src\\main\\resources\\KEWX_SDUS54_N0VEWX_201707270600";
         RadarFile rf=p.readWithImg(fileIn,"");
         ObjectMapper mapper=new ObjectMapper();
         String j=mapper.writeValueAsString(rf);

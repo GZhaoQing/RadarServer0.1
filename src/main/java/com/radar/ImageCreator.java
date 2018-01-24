@@ -6,7 +6,7 @@ import java.io.File;
 import java.io.IOException;
 
 /*
-* 根据传入的数据绘图
+* 根据传入的数据绘图   Deprecated
 * */
 public class ImageCreator {
     public final static int GRAY=1;

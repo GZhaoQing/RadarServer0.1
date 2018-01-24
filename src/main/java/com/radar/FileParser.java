@@ -2,6 +2,8 @@ package com.radar;
 
 import com.radar.grid.RasterGrid2_Byte;
 import com.radar.grid.RasterGridBuilder;
+import com.radar.radial.RadarSweep;
+import com.radar.radial.RadarSweepBuilder;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 import ucar.nc2.*;
@@ -45,7 +47,6 @@ public class FileParser {
             ncds= NetcdfDataset.openDataset(fileIn);
             hFile=readHeadInfo(ncds);
             radarFile.setHeadfile(hFile);
-
             return setImage(ncds,radarFile,imagePath,name);
         } catch (IOException e) {
             e.printStackTrace();
@@ -56,7 +57,7 @@ public class FileParser {
         }
         return radarFile;
     }
-    public RasterGrid2_Byte readGridData(String filePath) throws IOException {
+    public Data4Json readGridData(String filePath) throws IOException {
         NetcdfDataset ncds = null;
         FeatureDataset fds=null;
         try{
@@ -82,6 +83,7 @@ public class FileParser {
             SimpleDataModule rawData=getVarAndAxis(ncds,fds);
             RasterGridBuilder rgBuilder=new RasterGridBuilder();
             RasterGrid2_Byte rg_byte=rgBuilder.build((Variable) rawData.getVar(),rawData.getAxisList());
+
             return rg_byte;
         }catch (IOException e){
             e.printStackTrace();
@@ -335,31 +337,41 @@ public class FileParser {
             ImageCreator ic=new ImageCreator(imagePath);
             FeatureType type=rawData.type;
             if(type==FeatureType.RADIAL){
-                radarFile.setImgUrl(ic.createImage(
-                        ImageCreator.RGB_RADIAL,
-                        readRadialData(rawData),
-                        azimuth,
-                        gNum,
-                        name)
-                );
+//                radarFile.setImgUrl(ic.createImage(
+//                        ImageCreator.RGB_RADIAL,
+//                        readRadialData(rawData),
+//                        azimuth,
+//                        gNum,
+//                        name)
+//                );
+                radarFile.setImgType(ImageCreator.RGB_RADIAL);
+                RadarSweepBuilder rsBuilder=new RadarSweepBuilder();
+                RadarSweep rs=rsBuilder.build((RadialDatasetSweep.RadialVariable) rawData.getVar());
+                radarFile.setImgData(rs);
             }else{
                 if(ncds.getFileTypeId().equals("NIDS")){//Grid格式NEXRAD雷达数据
-                    radarFile.setImgUrl(ic.createImage(
-                            ImageCreator.RGB_GRID,
-                            readFeatureData(rawData),
-                            shape[0],
-                            shape[1],
-                            name)
-                    );
+//                    radarFile.setImgUrl(ic.createImage(
+//                            ImageCreator.RGB_GRID,
+//                            readFeatureData(rawData),
+//                            shape[0],
+//                            shape[1],
+//                            name)
+//                    );
+                    radarFile.setImgType(ImageCreator.RGB_GRID);
+
                 }else{
-                    radarFile.setImgUrl(ic.createImage(
-                            ImageCreator.GRAY,
-                            readFeatureData(rawData),
-                            shape[0],
-                            shape[1],
-                            name)
-                    );
+//                    radarFile.setImgUrl(ic.createImage(
+//                            ImageCreator.GRAY,
+//                            readFeatureData(rawData),
+//                            shape[0],
+//                            shape[1],
+//                            name)
+//                    );
+                    radarFile.setImgType(ImageCreator.GRAY);
                 }
+                RasterGridBuilder rgBuilder=new RasterGridBuilder();
+                RasterGrid2_Byte rg_byte=rgBuilder.build((Variable) rawData.getVar(),rawData.getAxisList());
+                radarFile.setImgData(rg_byte);
             }
             return radarFile;
         }catch (IOException e){

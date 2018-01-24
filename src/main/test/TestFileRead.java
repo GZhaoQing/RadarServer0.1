@@ -1,3 +1,4 @@
+import com.radar.Data4Json;
 import com.radar.FileParser;
 import com.radar.grid.RasterGrid2_Byte;
 import org.junit.Test;
@@ -22,9 +23,9 @@ public class TestFileRead {
     }
     @Test
     public void testFile() throws IOException {
-        FileParser fp=new FileParser();
-        RasterGrid2_Byte rg =fp.readGridData(System.getProperty("user.dir")+"\\src\\main\\resources\\"+"SATE_L2_F2G_VISSR_MWB_LBT_SEC_LCN-IR2-20170527-0100.AWX");
-        System.out.println(rg.m_llx+"\n"+rg.m_lly+"\n"+rg.m_cellSize+"\n"+rg.m_nRows+"\n" +rg.m_nCols+"\n"+rg.m_data);
+//        FileParser fp=new FileParser();
+//        Data4Json rg =fp.readGridData(System.getProperty("user.dir")+"\\src\\main\\resources\\"+"SATE_L2_F2G_VISSR_MWB_LBT_SEC_LCN-IR2-20170527-0100.AWX");
+//        System.out.println(rg.m_llx+"\n"+rg.m_lly+"\n"+rg.m_cellSize+"\n"+rg.m_nRows+"\n" +rg.m_nCols+"\n"+rg.m_data);
     }
     @Test
     public void testRadial() throws IOException {
