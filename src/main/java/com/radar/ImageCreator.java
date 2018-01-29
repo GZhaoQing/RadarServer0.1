@@ -55,7 +55,7 @@ public class ImageCreator {
             file.createNewFile();
         }
         ImageIO.write(bi, "jpg", file);
-        return imgPath;
+        return "img\\"+imgPath;
     }
 
 

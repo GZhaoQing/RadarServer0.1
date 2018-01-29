@@ -7,12 +7,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="2e6785ff-968f-4a45-8a60-4e6262b5fd0f" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/com/radar/FileParser.java" afterPath="$PROJECT_DIR$/src/main/java/com/radar/FileParser.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/com/radar/ImageCreator.java" afterPath="$PROJECT_DIR$/src/main/java/com/radar/ImageCreator.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/com/radar/RadarHeadfile.java" afterPath="$PROJECT_DIR$/src/main/java/com/radar/RadarHeadfile.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/com/radar/radial/RadarSweep.java" afterPath="$PROJECT_DIR$/src/main/java/com/radar/radial/RadarSweep.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/com/radar/radial/RadarSweepBuilder.java" afterPath="$PROJECT_DIR$/src/main/java/com/radar/radial/RadarSweepBuilder.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/test/TestFileRead.java" afterPath="$PROJECT_DIR$/src/main/test/TestFileRead.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/test/TestPaser.java" afterPath="$PROJECT_DIR$/src/main/test/TestPaser.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/webapp/index.html" afterPath="$PROJECT_DIR$/src/main/webapp/index.html" />
@@ -740,7 +735,7 @@
       <workItem from="1517040281897" duration="10961000" />
       <workItem from="1517103325332" duration="997000" />
       <workItem from="1517214163879" duration="761000" />
-      <workItem from="1517225476812" duration="5549000" />
+      <workItem from="1517225476812" duration="5966000" />
     </task>
     <servers />
   </component>
@@ -777,7 +772,7 @@
     </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="340586000" />
+    <option name="totallyTimeSpent" value="341003000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
