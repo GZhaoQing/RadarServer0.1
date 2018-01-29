@@ -10,6 +10,7 @@ public class RadarSweepBuilder {
         RadialDatasetSweep.Sweep sweep=varRef.getSweep(0);
         float[] azimuth=sweep.getAzimuth();
         int gNum=sweep.getGateNumber();
-        return new RadarSweep(data,azimuth,gNum);
+
+        return new RadarSweep(data,azimuth,gNum,sweep.getGateSize(),sweep.getRangeToFirstGate());
     }
 }
