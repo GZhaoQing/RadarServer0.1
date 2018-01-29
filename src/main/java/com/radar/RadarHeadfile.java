@@ -6,6 +6,7 @@ public class RadarHeadfile {
     private Map<String,String> dimention;
     private Map<String,Variable4Json> variable;
     private Map<String,String> attribute;
+    private double[][] bounds;
 
     public void setDimention(Map dimention) {
         this.dimention = dimention;
@@ -29,5 +30,13 @@ public class RadarHeadfile {
 
     public Map<String, Variable4Json> getVariable() {
         return variable;
+    }
+
+    public double[][] getBounds() {
+        return bounds;
+    }
+
+    public void setBounds(double[][] bounds) {
+        this.bounds = bounds;
     }
 }
