@@ -48,39 +48,40 @@ public class ImageCreator {
 //           filePath="file:/E:/win7sp1/apache-tomcat-8.0.38-windows-x64/apache-tomcat-8.0.38/webapps/radar/img/";
             filePath="";
         }
-        String imgPath=fileName+".jpg";
+        String imgPath=fileName+".png";
 
         File file=new File(filePath+imgPath);
         if (!file.exists()) {
             file.createNewFile();
         }
-        ImageIO.write(bi, "jpg", file);
+        ImageIO.write(bi, "png", file);
         return "img\\"+imgPath;
     }
 
 
     private BufferedImage createRGBImg(int[] data,int width,int height) throws IOException {
-        BufferedImage bi = new BufferedImage(width,height,BufferedImage.TYPE_3BYTE_BGR);
+        BufferedImage bi = new BufferedImage(width,height,BufferedImage.TYPE_4BYTE_ABGR);
+        int alpha=0xFF000000;
         for(int i=0 ;i<height;i++){
             for(int j = 0 ;j<width;j++){
                 //按列读取
                 switch (data[j*width+i]){
-                    case 0:bi.setRGB(i,j,0xFAFAFA);break;
-                    case 1:bi.setRGB(i,j,0xBFBFFC);break;
-                    case 2:bi.setRGB(i,j,0x7870ED);break;
-                    case 3:bi.setRGB(i,j,0x1C70CF);break;
-                    case 4:bi.setRGB(i,j,0xA6FAA6);break;
-                    case 5:bi.setRGB(i,j,0x00E800);break;
-                    case 6:bi.setRGB(i,j,0x0F911A);break;
-                    case 7:bi.setRGB(i,j,0xFAF263);break;
-                    case 8:bi.setRGB(i,j,0xC7C712);break;
-                    case 9:bi.setRGB(i,j,0x898900);break;
-                    case 10:bi.setRGB(i,j,0xFCABAB);break;
-                    case 11:bi.setRGB(i,j,0xFC5C5C);break;
-                    case 12:bi.setRGB(i,j,0xED122E);break;
-                    case 13:bi.setRGB(i,j,0xD48AFF);break;
-                    case 14:bi.setRGB(i,j,0xA524FA);break;
-                    default:bi.setRGB(i,j,0x000000);break;
+                    case 0:bi.setRGB(i,j,0x00FAFAFA);break;
+                    case 1:bi.setRGB(i,j,0xBFBFFC|alpha);break;
+                    case 2:bi.setRGB(i,j,0x7870ED|alpha);break;
+                    case 3:bi.setRGB(i,j,0x1C70CF|alpha);break;
+                    case 4:bi.setRGB(i,j,0xA6FAA6|alpha);break;
+                    case 5:bi.setRGB(i,j,0x00E800|alpha);break;
+                    case 6:bi.setRGB(i,j,0x0F911A|alpha);break;
+                    case 7:bi.setRGB(i,j,0xFAF263|alpha);break;
+                    case 8:bi.setRGB(i,j,0xC7C712|alpha);break;
+                    case 9:bi.setRGB(i,j,0x898900|alpha);break;
+                    case 10:bi.setRGB(i,j,0xFCABAB|alpha);break;
+                    case 11:bi.setRGB(i,j,0xFC5C5C|alpha);break;
+                    case 12:bi.setRGB(i,j,0xED122E|alpha);break;
+                    case 13:bi.setRGB(i,j,0xD48AFF|alpha);break;
+                    case 14:bi.setRGB(i,j,0xA524FA|alpha);break;
+                    default://bi.setRGB(i,j,0x00000000);break;
                 }
             }
         }
@@ -97,11 +98,12 @@ public class ImageCreator {
 
 
     private BufferedImage createRadialImg(float[] data,float[] azimuth,int gateNum) throws IOException {
-        BufferedImage bi = new BufferedImage(gateNum*2,gateNum*2,BufferedImage.TYPE_3BYTE_BGR);
+        BufferedImage bi = new BufferedImage(gateNum*2,gateNum*2,BufferedImage.TYPE_4BYTE_ABGR);
         int v;
         float rv;
         int offX;
         int offY;
+        int alpha=0xFF000000;
         for(int i=0;i<azimuth.length;i++){
 //            System.out.println(azimuth[i]);
             for(int j=0;j<gateNum;j++){
@@ -116,21 +118,21 @@ public class ImageCreator {
                 offY= (int) (gateNum+Math.sin((azimuth[i]-90)/180*Math.PI)*j);
                 //绘制
                 switch (v){
-                    case 64:bi.setRGB(offX,offY,0xFF0000);break;
-                    case 50:bi.setRGB(offX,offY,0xD07A00);break;
-                    case 36:bi.setRGB(offX,offY,0xAE0000);break;
-                    case 26:bi.setRGB(offX,offY,0xFFFF00);break;
-                    case 20:bi.setRGB(offX,offY,0xFFCF00);break;
-                    case 10:bi.setRGB(offX,offY,0xF88700);break;
-                    case 0:bi.setRGB(offX,offY,0x767676);
+                    case 64:bi.setRGB(offX,offY,0xFF0000|alpha);break;
+                    case 50:bi.setRGB(offX,offY,0xD07A00|alpha);break;
+                    case 36:bi.setRGB(offX,offY,0xAE0000|alpha);break;
+                    case 26:bi.setRGB(offX,offY,0xFFFF00|alpha);break;
+                    case 20:bi.setRGB(offX,offY,0xFFCF00|alpha);break;
+                    case 10:bi.setRGB(offX,offY,0xF88700|alpha);break;
+                    case 0:bi.setRGB(offX,offY,0x767676|alpha);
                         break;
-                    case -1:bi.setRGB(offX,offY,0xCDC09F);break;
-                    case -10:bi.setRGB(offX,offY,0x008F00);break;
-                    case -20:bi.setRGB(offX,offY,0x00BB00);break;
-                    case -26:bi.setRGB(offX,offY,0x00FB90);break;
-                    case -36:bi.setRGB(offX,offY,0x320096);break;
-                    case -50:bi.setRGB(offX,offY,0x008AFF);break;
-                    case -64:bi.setRGB(offX,offY,0x00E0FF);break;
+                    case -1:bi.setRGB(offX,offY,0xCDC09F|alpha);break;
+                    case -10:bi.setRGB(offX,offY,0x008F00|alpha);break;
+                    case -20:bi.setRGB(offX,offY,0x00BB00|alpha);break;
+                    case -26:bi.setRGB(offX,offY,0x00FB90|alpha);break;
+                    case -36:bi.setRGB(offX,offY,0x320096|alpha);break;
+                    case -50:bi.setRGB(offX,offY,0x008AFF|alpha);break;
+                    case -64:bi.setRGB(offX,offY,0x00E0FF|alpha);break;
                     default://bi.setRGB(offX,offY,0x77007D);
                         break;
                 }
