@@ -6,19 +6,55 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.1/dist/leaflet.css"
     integrity="sha512-Rksm5RenBEKSKFjgI3a41vrjkw4EVPlJ3+OiI65vTjIdo9brlAacEuKOiQ5OFh7cOI1bkDwLqdLw3Zg0cRJAAQ=="
     crossorigin=""/>
-    <style type="text/css">
+    <style>
+        body,div,ul,li,a{
+            margin:0;
+            padding:0;
+        }
         li{
-            
+            list-style-type:none;
+        }
+    </style>
+    <style type="text/css">
+        #data_content{
+            margin-left:352px;
+        }
+        #data_page{
+            max-width: 960px;
+            position:relative;
+            margin:0 auto;
+            padding:15px;
+        }
+
+        #left{
+            min-height: 256px;
+            float: left;
+            overflow:auto;
+            margin-top:10px;
+            top:0;
+            bottom: 0;
+            left:0;
+            background: #F2F2F2;
         }
         #list{
-            width:35%;
-            float: left;
-            padding: 10px;
-            margin:5px;
+            background:#F2F2F2;
+        }
+        #list li{
+            width:352px;
+            box-sizing: border-box;
+            background:#F2F2F2;
+            transition: background 0.2s ease;
+            -moz-transition: background 0.2s ease; /* Firefox 4 */
+            -webkit-transition: background 0.2s ease; /* Safari 和 Chrome */
+            -o-transition: background 0.2s ease;
+        }
+        #list li:hover{
+            border-right:2px solid #EC0033;
+            background:#FFD1D2;
         }
         #list a{
+            padding:5px 8px;
             display: block;
-            width:15em;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -27,14 +63,23 @@
         #list a:hover{
             overflow: visible;
             white-space: pre-wrap;
-            color:red;
+            color:#EC0033;
             cursor:pointer;
         }
-        #square{
-            border: 1px solid #000;
-            display: none;
+        .list_active {
+            color:#E3161C;
+        }
+        #page_wrap{
+
+        }
+        .pages{
+            display: inline-block;
+        }
+        .active{
+
         }
         .map{
+            margin:10px 20px;
             height:500px;
         }
     </style>
@@ -48,25 +93,37 @@
     
 </head>
 <body>
-    <div>
+    <div id="content">
         <div></div>
-        <div id="list">
-            <ul>
-                
-            </ul>
-            <!-- <dl>
-                <dt>Name</dt>
-                <dd><ul>
-                    <li>1</li>
-                    <li>2</li>
-                </ul></dd>
-                
-            </dl> -->
+        <div id="left">
+            <div id="list">
+                <ul>
+                    
+                </ul>
+                <!-- <dl>
+                    <dt>Name</dt>
+                    <dd><ul>
+                        <li>1</li>
+                        <li>2</li>
+                    </ul></dd>
+                    
+                </dl> -->
+            </div>
+                <div id="page_wrap">
+                    <ul class="pages">
+                    </ul>
+                </div>
         </div>
         <!-- <CANVAS id="square" width="200" height="200">Your browser does not support the HTML5 canvas tag.</CANVAS> -->
-        <div id="map" class="map"></div>
+        <div id="data_content">
+            <div id="data_page">
+                <div id="map" class="map"></div>
+            </div>
+        </div>
+
     </div>
     <script type="text/javascript">
+        //code for map ()leaflet)
         var mymap = L.map('map').setView([40.72,-74.2],6);
         L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
             attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
@@ -77,11 +134,28 @@
         
         var singleOverlay=L.imageOverlay();
         var group=L.layerGroup();
+        var rec
         function setOverlay(imageUrl,imageBounds){
             //singleOverlay.setUrl(imageUrl).setBounds(imageBounds).addTo(mymap);
-            var over=L.imageOverlay(imageUrl,imageBounds);
+            if(rec!=undefined){
+                rec.removeFrom(mymap);
+            }
+            var over=L.imageOverlay(imageUrl,imageBounds,{interactive:true});
             group.clearLayers().addLayer(over).addTo(mymap);
             mymap.fitBounds(imageBounds);
+
+            //hover特效
+            rec=L.rectangle(imageBounds,{color: "#ff7800", weight: 1,opacity:0,fillOpacity:0}).addTo(mymap);
+            rec.on({
+                mouseover:highlight,
+                mouseout:reset_highlight
+            })
+        }
+        function highlight(e){
+            e.target.setStyle({opacity:1});
+        }
+        function reset_highlight(e){
+            e.target.setStyle({opacity:0});
         }
     </script>
     <script type="text/javascript">
@@ -98,8 +172,14 @@
             $('#list a').each(function(){
                 $(this).click(function(){
                     getData($(this).html());
+                    $('#list a').each(function(){$(this).removeClass("list_active")});
+                    $(this).addClass("list_active");
                 })
             });
+            var $pages=$('#page_wrap.pages');
+            for(var i=0;i<files.length/10;i++){
+                $pages.append("<li><a>"+i+"</a></li>")
+            }
         }
         
         function getFileList(){
