@@ -17,6 +17,7 @@ import ucar.nc2.ft.FeatureDatasetFactoryManager;
 import ucar.nc2.util.CancelTask;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class FileParser {
@@ -101,6 +102,7 @@ public class FileParser {
         hFile.setVariable(readVariables(ncFile.getVariables()));
         hFile.setAttribute(readAttributes(ncFile.getGlobalAttributes()));
         hFile.setBounds(getExtend(ncFile.getGlobalAttributes()));
+        hFile.setTime(getTime(ncFile.getGlobalAttributes()));
         return hFile;
     }
     private LinkedHashMap readDimensions(List<Dimension> listD){
@@ -254,6 +256,21 @@ public class FileParser {
         }
         return bounds;
     }
+    private String getTime(List<Attribute> listA){
+        String dateStr="";
+        Iterator it=listA.iterator();
+        Attribute attr=null;
+        while(it.hasNext()) {
+            attr = (Attribute) it.next();
+            if (attr.isString()) {
+                String name = attr.getFullName();
+                if(name=="time_coverage_start"){
+                    dateStr=attr.getStringValue();
+                }
+            }
+        }
+        return dateStr;
+    }
 
     private SimpleDataModule getVarAndAxis(NetcdfDataset ncds,FeatureDataset fds) throws IOException {
 
@@ -286,7 +303,7 @@ public class FileParser {
                 Variable var=null;
                 for(VariableSimpleIF v:list){
                     Variable vt=(Variable)v;
-                    System.out.println(vt.getDataType());
+//                    System.out.println(vt.getDataType());
                     if(vt.getDataType()== DataType.BYTE||vt.getDataType()==DataType.SHORT){
                         var=vt;
                     }

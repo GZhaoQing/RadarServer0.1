@@ -7,6 +7,7 @@ public class RadarHeadfile {
     private Map<String,Variable4Json> variable;
     private Map<String,String> attribute;
     private double[][] bounds;
+    private String time;
 
     public void setDimention(Map dimention) {
         this.dimention = dimention;
@@ -38,5 +39,13 @@ public class RadarHeadfile {
 
     public void setBounds(double[][] bounds) {
         this.bounds = bounds;
+    }
+
+    public String getTime() {
+        return time;
+    }
+
+    public void setTime(String time) {
+        this.time = time;
     }
 }

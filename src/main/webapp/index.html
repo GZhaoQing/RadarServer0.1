@@ -82,6 +82,33 @@
             margin:10px 20px;
             height:500px;
         }
+        #overlay_hide{
+            display: none;
+        }
+        #overlay_show{
+            position: absolute;
+            top: 0%;
+            left: 0%;
+            width: 100%;
+            height: 100%;
+            background-color: black;
+            z-index:1001;
+            -moz-opacity: 0.3;
+            opacity:.30;
+            filter: alpha(opacity=30);
+        }
+        .showAboveOverlay{
+            position: relative;
+            z-index:10000;
+        }
+    </style>
+    <style type="text/css">
+        .info{
+            padding: 6px 8px;
+            background:rgba(255,255,255,0.8);
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            border-radius: 5px;
+        }
     </style>
     <script type="text/javascript" src="https://cdn.bootcss.com/jquery/3.2.0/jquery.min.js">
     </script>
@@ -93,6 +120,12 @@
     
 </head>
 <body>
+    <div id="overlay_hide"></div><!-- 遮罩 -->
+    <div>
+        <button id="play" onclick="playGallery()">play!</button>
+        <button id="pause" onclick="pauseGallery()">pause!</button>
+        <button id="chooose" onclick="chooseFile()">chooose!</button>
+    </div>
     <div id="content">
         <div></div>
         <div id="left">
@@ -122,8 +155,9 @@
         </div>
 
     </div>
+
     <script type="text/javascript">
-        //code for map ()leaflet)
+        //code for map (leaflet)
         var mymap = L.map('map').setView([40.72,-74.2],6);
         L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
             attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
@@ -132,24 +166,25 @@
             accessToken: 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw'
         }).addTo(mymap);
         
-        var singleOverlay=L.imageOverlay();
+//        var singleOverlay=L.imageOverlay();
         var group=L.layerGroup();
         var rec
-        function setOverlay(imageUrl,imageBounds){
+        function showImg(imageUrl,hf){
+            var imageBounds=hf.bounds;
             //singleOverlay.setUrl(imageUrl).setBounds(imageBounds).addTo(mymap);
-            if(rec!=undefined){
-                rec.removeFrom(mymap);
-            }
             var over=L.imageOverlay(imageUrl,imageBounds,{interactive:true});
-            group.clearLayers().addLayer(over).addTo(mymap);
-            mymap.fitBounds(imageBounds);
 
             //hover特效
-            rec=L.rectangle(imageBounds,{color: "#ff7800", weight: 1,opacity:0,fillOpacity:0}).addTo(mymap);
+            rec=L.rectangle(imageBounds,{color: "#ff7800", weight: 1,opacity:0,fillOpacity:0})//.addTo(mymap);
             rec.on({
                 mouseover:highlight,
                 mouseout:reset_highlight
             })
+
+            group.clearLayers().addLayer(over).addLayer(rec).addTo(mymap);
+            mymap.fitBounds(imageBounds);
+
+            info.update(hf);
         }
         function highlight(e){
             e.target.setStyle({opacity:1});
@@ -159,27 +194,47 @@
         }
     </script>
     <script type="text/javascript">
-
+        var fileList=[];
         var testfiles=["KFWD_SDUS64_NCZGRK_201208150217",
                     "SATE_L2_F2G_VISSR_MWB_LBT_SEC_LCN-IR2-20170527-0100.AWX",
                     "KEWX_SDUS54_N0VEWX_201707270600"]
         getFileList();
+
         function init(files){
             var $ul = $('#list>ul');
             for(var i=0;i<files.length;i++){
-                $ul.append("<li><a>"+files[i]+"</a></li>")
+                $ul.append("<li><a class='file'>"+files[i]+"</a></li>")
             }
-            $('#list a').each(function(){
-                $(this).click(function(){
-                    getData($(this).html());
-                    $('#list a').each(function(){$(this).removeClass("list_active")});
-                    $(this).addClass("list_active");
-                })
+            $('.file').each(function(){
+                setClickDe($(this));
             });
             var $pages=$('#page_wrap.pages');
             for(var i=0;i<files.length/10;i++){
                 $pages.append("<li><a>"+i+"</a></li>")
             }
+            initInfo();
+        }
+        var info = L.control();
+        function initInfo(){
+            info.onAdd = function (map) {
+                this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
+                this.update();
+                return this._div;
+            };
+            info.update = function (props) {
+                this._div.innerHTML = '<h4>File Info</h4>' +  (props ?
+                    '<b>' + props.time + '</b><br />'
+                    : '');
+            };
+
+            info.addTo(mymap);
+        }
+        function setClickDe(dom){
+            dom.click(function(){
+                getData($(this).html());
+                $('.file').each(function(){$(this).removeClass("list_active")});
+                $(this).addClass("list_active");
+            })
         }
         
         function getFileList(){
@@ -189,7 +244,7 @@
                     // async:false,
                     success:function(result){
                         var json=JSON.parse(result);
-
+                        fileList=json;
                         init(json);
                     }
                 });
@@ -205,7 +260,7 @@
                         var hf=json.headfile;
                         var bounds=hf.bounds;
                         var img=json.imgUrl;
-                        setOverlay(img,bounds);
+                        showImg(img,hf);
                         // var c;
                         // switch(type){
                             // case 1:
@@ -224,8 +279,95 @@
                     }
                 });
         }
-        
 
+        //gallery
+        var key;
+        var index=0;
+        var listData;
+        var chooseList;
+        Array.prototype.indexOf = function(val) {
+            for (var i = 0; i < this.length; i++) {
+                if (this[i] == val) return i;
+            }
+            return -1;
+        };
+        function playGallery(){
+            resetOverlay()
+            listData=new Array();
+            for(var i=0;i<chooseList.length;i++){
+                $.ajax({
+                    url: '/radar/rest/r/files/' + chooseList[i],
+                    type: "GET",
+                    async:false,
+                    success: function (result) {
+                        json = JSON.parse(result)
+                        var hf = json.headfile;
+                        var bounds = hf.bounds;
+                        var img = json.imgUrl;
+                        listData[i]=new Object();
+                        listData[i].hf=hf;
+                        listData[i].img=img;
+                    }
+                })
+            }
+            for(var i=0;i<chooseList.length;i++){
+                console.log(listData[i]);
+            }
+            key=setInterval(function () {
+                if(index<chooseList.length){
+                    showImg(listData[index].img,listData[index].hf);
+                    index++;
+                }else{
+                    pauseGallery()
+                }
+            },1000)
+        }
+        function pauseGallery(){
+            key=clearInterval(key);
+            $('.file').each(function(){
+                $(this).unbind('click').removeClass("list_active");
+                setClickDe($(this))
+
+            });
+        }
+        function chooseFile(dom){
+            setOverlay()
+            chooseList=new Array();
+            $('.file').each(function(){
+                setClickChoose($(this))
+            })
+        }
+        function setClickChoose(dom){
+            dom.unbind('click').bind('click',function(){
+                console.log($(this).html());
+                chooseList.push($(this).html());
+                $(this).addClass("list_active");
+                for(var i=0;i<chooseList.length;i++){
+                    console.log(chooseList[i]);
+                }
+                setClickCancel(dom)
+            })
+        }
+        function setClickCancel(dom){
+            dom.unbind('click').click(function(){
+                var i=chooseList.valueOf($(this).html());
+                if(i!==-1){
+                    chooseList.splice(i,1);
+                }
+                $(this).removeClass("list_active");
+                setClickChoose(dom);
+            })
+        }
+        function setOverlay(){
+            $('#play').addClass('showAboveOverlay');
+            $('#list').addClass('showAboveOverlay');
+            $('#overlay_hide').attr('id','overlay_show');
+        }
+        function resetOverlay(){
+            $('#overlay_show').attr('id','overlay_hide');
+            $('#list').removeClass('showAboveOverlay');
+            $('#play').removeClass('showAboveOverlay');
+        }
     </script>
     
 </body>
