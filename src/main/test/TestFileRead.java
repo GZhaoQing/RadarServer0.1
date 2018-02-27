@@ -18,7 +18,7 @@ import java.util.Iterator;
 public class TestFileRead {
     @Test
     public void DumpTest() throws IOException {
-        String fileIn=System.getProperty("user.dir")+"\\src\\main\\resources\\spherical_pressure_level.grib1";
+        String fileIn=System.getProperty("user.dir")+"\\src\\main\\resources\\dataFiles\\KFWD_SDUS64_NCZGRK_201208150212";
         NCdumpW.print(fileIn, new PrintWriter(System.out));
     }
     @Test

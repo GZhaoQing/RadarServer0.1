@@ -7,7 +7,7 @@
     integrity="sha512-Rksm5RenBEKSKFjgI3a41vrjkw4EVPlJ3+OiI65vTjIdo9brlAacEuKOiQ5OFh7cOI1bkDwLqdLw3Zg0cRJAAQ=="
     crossorigin=""/>
     <style>
-        body,div,ul,li,a{
+        body,div,ul,li,a,p,h4{
             margin:0;
             padding:0;
         }
@@ -16,6 +16,9 @@
         }
     </style>
     <style type="text/css">
+    	body,html{
+    		height:100%;
+    	}
         #data_content{
             margin-left:352px;
         }
@@ -27,20 +30,56 @@
         }
 
         #left{
+        	width:352px;
+        	height: 100%;
             min-height: 256px;
             float: left;
-            overflow:auto;
-            margin-top:10px;
+
             top:0;
             bottom: 0;
             left:0;
             background: #F2F2F2;
         }
+
+        .toolbar{
+        	height:60px;
+        	background-color:#333;
+        }
+        #left .toolbar a{
+        	display: inline-block;
+        	width:44px;
+        	height: 44px;
+        	background-repeat: no-repeat;
+            margin-top: 8px;
+        }
+
+        #left_search{
+        	/*background-image: url('');*/
+        }
+        #left_select{
+        	background-image: url('images/player-select.svg');
+        	background-position: center;
+        	background-size:75%;
+        }
+        #left_play{
+        	background-image: url('images/player-go.svg');
+        	background-size:100%;
+        }
+        #left_loop{
+        	/*background-image: */
+        }
+		#left_select:hover,#left_play:hover{
+        	background-color: #111;
+        }
         #list{
             background:#F2F2F2;
         }
+        #list ul{
+        	overflow-y:auto;
+        }
         #list li{
             width:352px;
+            padding-left: 12px;
             box-sizing: border-box;
             background:#F2F2F2;
             transition: background 0.2s ease;
@@ -126,9 +165,15 @@
         <button id="pause" onclick="pauseGallery()">pause!</button>
         <button id="chooose" onclick="chooseFile()">chooose!</button>
     </div>
-    <div id="content">
+    
         <div></div>
         <div id="left">
+        	<div class="toolbar">
+        		<a id="left_search"></a>
+        		<a id="left_select"  onclick="chooseFile()"></a>
+        		<a id="left_play" onclick="playGallery()"></a>
+        		<a id="left_loop"></a>
+        	</div>
             <div id="list">
                 <ul>
                     
@@ -154,18 +199,59 @@
             </div>
         </div>
 
-    </div>
+    
 
     <script type="text/javascript">
         //code for map (leaflet)
-        var mymap = L.map('map').setView([40.72,-74.2],6);
-        L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
-            attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
+        var Common_accessToken= 'pk.eyJ1IjoidWZvcmljaGFyZCIsImEiOiJjamQwMDU2Y3kxajhkMnhvMXA0aXRtMzNkIn0.XAScbtETx_JRjPjFmo8Gkg';
+        var t_row=L.tileLayer('https://api.tiles.mapbox.com/styles/v1/{id}/tiles/256/{z}/{x}/{y}?access_token={accessToken}', {
             maxZoom: 18,
-            id: 'mapbox.streets',
-            accessToken: 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw'
-        }).addTo(mymap);
-        
+            id:'uforichard/cjdygtkk90y372sn5qk9hngk7',
+            accessToken: Common_accessToken
+        });
+        var t_boundary=L.tileLayer('https://api.tiles.mapbox.com/styles/v1/{id}/tiles/256/{z}/{x}/{y}?access_token={accessToken}', {
+            maxZoom: 18,
+            id:'uforichard/cjdyfqezq8xek2sm1dnu0h65m',
+            accessToken: Common_accessToken
+        });
+        var t_road=L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/256/{z}/{x}/{y}?&access_token={accessToken}', {
+            maxZoom: 18,
+            id:'uforichard/cjdy8tmjw0idw2rrwrhgsfohb',
+            accessToken: Common_accessToken
+        });
+        var t_label=L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/256/{z}/{x}/{y}?&access_token={accessToken}', {
+            maxZoom: 18,
+            id:'uforichard/cjdygdk658y032sm1mytzw4yx',
+            accessToken: Common_accessToken
+        });
+
+        var mymap = L.map('map',{center:[40.72,-74.2],zoom:7,layers: [t_row,t_boundary, t_road,t_label]})
+        //图层控制
+        var baseMaps={
+
+        }
+        var overlayMaps={
+            "row":t_row,
+            "boundary":t_boundary,
+            "road": t_road,
+            "label": t_label
+        }
+        L.control.layers(baseMaps, overlayMaps).addTo(mymap)
+
+        var ZoomViewer = L.Control.extend({
+            onAdd: function(){
+                var gauge = L.DomUtil.create('div');
+                gauge.style.width = '100px';
+                gauge.style.background = 'rgba(255,255,255,0.5)';
+                gauge.style.textAlign = 'left';
+                mymap.on('zoomstart zoom zoomend', function(ev){
+                    gauge.innerHTML = 'Zoom level: ' + mymap.getZoom();
+                })
+                return gauge;
+            }
+        });
+        (new ZoomViewer({position:'bottomleft'})).addTo(mymap)
+
 //        var singleOverlay=L.imageOverlay();
         var group=L.layerGroup();
         var rec
@@ -229,6 +315,7 @@
 
             info.addTo(mymap);
         }
+        //for列表项
         function setClickDe(dom){
             dom.click(function(){
                 getData($(this).html());
@@ -261,7 +348,6 @@
                         var bounds=hf.bounds;
                         var img=json.imgUrl;
                         showImg(img,hf);
-                        // var c;
                         // switch(type){
                             // case 1:
                                 // c=createGridImage_Satellite(array,array[0].length,array.length);
@@ -275,7 +361,6 @@
                         // }
                         // console.log("getData:"+c.width);
                         // setStyle(c);
-
                     }
                 });
         }
@@ -284,7 +369,8 @@
         var key;
         var index=0;
         var listData;
-        var chooseList;
+        var chooseList=["KEWX_SDUS54_N0VEWX_201707270600","KFWD_SDUS64_NCZGRK_201208150217"];
+        var play_flag=false;
         Array.prototype.indexOf = function(val) {
             for (var i = 0; i < this.length; i++) {
                 if (this[i] == val) return i;
@@ -292,44 +378,65 @@
             return -1;
         };
         function playGallery(){
+
             resetOverlay()
-            listData=new Array();
-            for(var i=0;i<chooseList.length;i++){
-                $.ajax({
-                    url: '/radar/rest/r/files/' + chooseList[i],
-                    type: "GET",
-                    async:false,
-                    success: function (result) {
-                        json = JSON.parse(result)
-                        var hf = json.headfile;
-                        var bounds = hf.bounds;
-                        var img = json.imgUrl;
-                        listData[i]=new Object();
-                        listData[i].hf=hf;
-                        listData[i].img=img;
-                    }
-                })
-            }
-            for(var i=0;i<chooseList.length;i++){
-                console.log(listData[i]);
-            }
-            key=setInterval(function () {
-                if(index<chooseList.length){
-                    showImg(listData[index].img,listData[index].hf);
-                    index++;
-                }else{
-                    pauseGallery()
+        	if(play_flag===false){
+                //前端效果变动
+                $('#left_play').css("background-image","Url('images/player-pause.svg')");
+                play_flag=true;
+
+                listData=new Array();
+                for(var i=0;i<chooseList.length;i++){
+                    $.ajax({
+                        url: '/radar/rest/r/files/' + chooseList[i],
+                        type: "GET",
+                        async:false,
+                        success: function (result) {
+                            console.log("success")
+                            json = JSON.parse(result)
+                            var hf = json.headfile;
+                            var bounds = hf.bounds;
+                            var img = json.imgUrl;
+                            listData[i]=new Object();
+                            listData[i].hf=hf;
+                            listData[i].img=img;
+                        }
+                    })
                 }
-            },1000)
+//                console.log(chooseList.length+";;"+listData.length)
+	            for(var i=0;i<chooseList.length;i++){
+	                console.log(listData[i]);
+	            }
+                key=setInterval(function () {
+                    if(index<chooseList.length){
+                        console.log(listData[index].img)
+                        showImg(listData[index].img,listData[index].hf);
+                        index++;
+                    }else{
+                        pauseGallery()
+                    }
+                },1000)
+            
+
+	           
+        	}else if(play_flag===true){
+        		pauseGallery();
+        		
+        	}
+            
         }
         function pauseGallery(){
+        	play_flag=false;
+        	$('#left_play').css("background-image","Url('images/player-go.svg')");
             key=clearInterval(key);
             $('.file').each(function(){
                 $(this).unbind('click').removeClass("list_active");
                 setClickDe($(this))
-
             });
+            index=0;
+            
         }
+        //手动挑选
         function chooseFile(dom){
             setOverlay()
             chooseList=new Array();
@@ -339,7 +446,7 @@
         }
         function setClickChoose(dom){
             dom.unbind('click').bind('click',function(){
-                console.log($(this).html());
+                // console.log($(this).html());
                 chooseList.push($(this).html());
                 $(this).addClass("list_active");
                 for(var i=0;i<chooseList.length;i++){
@@ -359,14 +466,14 @@
             })
         }
         function setOverlay(){
-            $('#play').addClass('showAboveOverlay');
+            $('#left_play').addClass('showAboveOverlay');
             $('#list').addClass('showAboveOverlay');
             $('#overlay_hide').attr('id','overlay_show');
         }
         function resetOverlay(){
             $('#overlay_show').attr('id','overlay_hide');
             $('#list').removeClass('showAboveOverlay');
-            $('#play').removeClass('showAboveOverlay');
+            $('#left_play').removeClass('showAboveOverlay');
         }
     </script>
     

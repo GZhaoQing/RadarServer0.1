@@ -8,6 +8,8 @@ import ucar.nc2.NCdumpW;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class TestPaser {
@@ -56,10 +58,19 @@ public class TestPaser {
     @Test
     public void  Test2JsonD() throws IOException {
         FileParser p=new FileParser();
-        String fileIn=System.getProperty("user.dir")+"\\src\\main\\resources\\SATE_L2_F2G_VISSR_MWB_LBT_SEC_LCN-IR2-20170527-0100.AWX";
+        String fileIn=System.getProperty("user.dir")+"\\src\\main\\resources\\KFWD_SDUS64_NCZGRK_201208150217";
         Data4Json rf=p.readGridData(fileIn);
         ObjectMapper mapper=new ObjectMapper();
         String j=mapper.writeValueAsString(rf);
         System.out.println(j);
+    }
+    @Test
+    public void TestDate() throws ParseException {
+        String date="2012-08-15T02:12:24Z";
+//        date = date.replace("Z", " UTC");//注意是空格+UTC
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+        Date d = format.parse(date);
+        Calendar c= new Calendar.Builder().setInstant(d).build();
+        System.out.println(d.getMinutes());
     }
 }
