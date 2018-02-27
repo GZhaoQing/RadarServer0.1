@@ -25,6 +25,7 @@ public class FileParser {
     private int[] shape=new int[2];
     private float[] azimuth;
     private int gNum;
+    private String fName;
     public FileParser() {
     }
     public FileParser(String defaultPath) {
@@ -40,7 +41,7 @@ public class FileParser {
         //取得文件名
         int pos=fileIn.lastIndexOf("/");
         String name=fileIn.substring(pos+1);
-
+        fName=name;//文件名
         RadarFile radarFile=new RadarFile();
         RadarHeadfile hFile=new RadarHeadfile();
         NetcdfDataset ncds=null;
