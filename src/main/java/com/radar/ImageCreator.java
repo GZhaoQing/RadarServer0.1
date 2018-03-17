@@ -107,7 +107,7 @@ public class ImageCreator {
         for(int i=0;i<azimuth.length;i++){
 //            System.out.println(azimuth[i]);
             for(int j=0;j<gateNum;j++){
-                rv=data[i*230+j];
+                rv=data[i*gateNum+j];
                 if(rv==rv){
                     v=(int)rv;
                 }else{
