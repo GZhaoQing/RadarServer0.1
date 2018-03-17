@@ -1,5 +1,6 @@
 package com.radar;
 
+import java.util.Arrays;
 import java.util.Map;
 
 public class RadarHeadfile {
@@ -8,6 +9,7 @@ public class RadarHeadfile {
     private Map<String,String> attribute;
     private double[][] bounds;
     private String time;
+    private String name;
 
     public void setDimention(Map dimention) {
         this.dimention = dimention;
@@ -47,5 +49,24 @@ public class RadarHeadfile {
 
     public void setTime(String time) {
         this.time = time;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String toString() {
+        return "RadarHeadfile{" +
+                "dimention=" + dimention +
+                ", variable=" + variable +
+                ", attribute=" + attribute +
+                ", bounds=" + Arrays.toString(bounds) +
+                ", time='" + time + '\'' +
+                '}';
     }
 }
