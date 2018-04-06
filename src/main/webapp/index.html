@@ -4,9 +4,12 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Title</title>
+
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.1/dist/leaflet.css"
     integrity="sha512-Rksm5RenBEKSKFjgI3a41vrjkw4EVPlJ3+OiI65vTjIdo9brlAacEuKOiQ5OFh7cOI1bkDwLqdLw3Zg0cRJAAQ=="
     crossorigin=""/>
+    <link rel="stylesheet" href="css/Control.FullScreen.css" />
+
     <style>
         body,div,ul,li,a,p,h4{
             margin:0;
@@ -20,6 +23,36 @@
     	body,html{
     		height:100%;
     	}
+
+        /*******查询后出现的小卡片*******/
+        #crumb_list{
+        }
+        #crumb_list ul li{
+            top:-7px;
+            float:right;
+        }
+        .crumb{
+            height:24px;
+            display: inline-block;
+            position: relative;
+            background-color: #FFF;
+            border: 1px solid #EC0033;
+            color:#EC0033;
+            margin:0 20px;
+            padding:0px 5px 0px 18px;
+            top:5px;
+        }
+        .crumbDelete{
+            width: 16px;
+            height: 16px;
+            position: absolute;
+            left:2px;
+            top:5px;
+            background-image:url('images/delete_s.svg');
+            background-repeat: no-repeat;
+            background-size: 100%;
+        }
+        /*************/
         #data_content{
             margin-left:352px;
         }
@@ -46,7 +79,7 @@
         	height:60px;
         	background-color:#333;
         }
-        #left .toolbar a{
+        #left .toolbar>a{
         	display: inline-block;
         	width:44px;
         	height: 44px;
@@ -73,6 +106,11 @@
         #left_search:hover,#left_select:hover,#left_play:hover{
         	background-color: #111;
             cursor: pointer;
+        }
+        .search_tab_containt{
+            position: absolute;
+            overflow-y:auto;
+            display: none;
         }
         .search_hide{
             display: none;
@@ -102,6 +140,9 @@
         }
         #list_tab_2 span{
             left:100px
+        }
+        .listActive{
+
         }
         .tab_btn{
             display: inline-block;
@@ -193,12 +234,11 @@
     </style>
     <script type="text/javascript" src="https://cdn.bootcss.com/jquery/3.2.0/jquery.min.js">
     </script>
-    
-    
     <script src="https://unpkg.com/leaflet@1.3.1/dist/leaflet.js"
     integrity="sha512-/Nsx9X4HebavoBvEBuyp3I7od5tA0UzAxs+j83KgC8PU0kgB4XiK4Lfe4y4cgBtaRJQEIFCW+oC506aPT2L1zw=="
     crossorigin=""></script>
-    
+    <script src="js/Control.FullScreen.js"></script>
+    <script src="js/L.Graticule.js"></script>
 </head>
 <body>
     <div id="overlay_hide"></div><!-- 遮罩 -->
@@ -215,27 +255,33 @@
         		<a id="left_select"  onclick="chooseFile()"></a>
         		<a id="left_play" onclick="playGallery()"></a>
         		<a id="left_loop"></a>
+                <div id="crumb_list" class="search_hide">
+                    <ul>
+                        <li class="crumb">
+                            <span>in search</span>
+                            <a href="#" class="crumbDelete" onclick="cancelSearch()"></a>
+                        </li>
+                    </ul>
+                </div>
                 <div id="search" class="search_hide">
                     <div id="search_time">
-                        <span class="tab_btn"></span>
-                        <div class="tab_containt tab_show">
-                            <form id="search_form" method="post">
+                        <!--<span class="tab_btn"></span>-->
+                        <div class="search_tab_containt tab_show">
+                            <div id="search_form">
                                 <label for="time_start">起始时间</label><input id="time_start" type="date" name="time_start"/><br>
                                 <label for="time_end">终止时间</label><input id="time_end" type="date" name="time_end"/>
-                                <input onclick="do_search()" type="submit" value="Search">
-                            </form>
+                                <button onclick="do_search()" >查询</button>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div id="crumb_list">
 
-                </div>
         	</div>
 
 
             <div id="list">
            
-                <div id="list_tab_0">
+                <div id="list_tab_0" class="listActive">
                     <span class="tab_btn">1</span>
                     <ul class="tab_containt tab_show"></ul>
                 </div>

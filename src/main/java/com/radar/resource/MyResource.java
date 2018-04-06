@@ -5,19 +5,24 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.radar.Data4Json;
 import com.radar.FileParser;
 import com.radar.RadarFile;
+import com.radar.util.DfUtil;
+import com.radar.util.SrchConst;
+import org.xml.sax.SAXException;
 
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerConfigurationException;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @Path("/r")
 public class MyResource {
@@ -27,7 +32,6 @@ public class MyResource {
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.APPLICATION_JSON)
     public String getFileList(@Context ServletContext context) throws MalformedURLException, JsonProcessingException {
-
         String filePath = context.getResource("WEB-INF\\classes\\dataFiles").getPath();
         File f=new File(filePath);
         FileFilter docFilter=new FileFilter(){
@@ -49,13 +53,13 @@ public class MyResource {
                 }
             }
         };
-        List<String> arrayList=new ArrayList<>();
+        Map<String,List<String>> map=new HashMap<>();
         for(int i=0;i<docList.length;i++){
             String[] files=filesToStrings(docList[i].listFiles(fileFilter));
-            arrayList.addAll(Arrays.asList(files));
+            map.put(docList[i].getName(),Arrays.asList(files));
         }
         ObjectMapper mapper = new ObjectMapper();
-        String json = mapper.writeValueAsString(arrayList);
+        String json = mapper.writeValueAsString(map);
         return json;
     }
     private String[] filesToStrings(File[] list){
@@ -79,7 +83,7 @@ public class MyResource {
             String subName=file.substring(0,4);
             String filePath = Thread.currentThread().getContextClassLoader().getResource("dataFiles\\"+subName+"\\"+file).toString();
             String imagePath = context.getResource("img").getPath();
-
+            System.out.println(imagePath);
             RadarFile rf = p.readWithImg(filePath, imagePath);
 
 //            double te = System.currentTimeMillis();
@@ -112,4 +116,37 @@ public class MyResource {
         }
         return null;
     }
+
+    @POST
+    @Path("/files/search")
+    @Produces(MediaType.TEXT_PLAIN)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public String doSearch(String p,@Context ServletContext context) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            SearchParam param =mapper.readValue(p,SearchParam.class);
+            System.out.println(param.getTimeStart());
+            String timeStart = param.getTimeStart();
+            String timeEnd = param.getTimeEnd();
+
+            String path=context.getResource("WEB-INF\\classes\\fileList.xml").getPath();
+            File xmlFile = new File(path);
+            DfUtil util = new DfUtil();
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+            Date ds= format.parse(timeStart);
+            Date de= format.parse(timeEnd);
+            Date[] d = {ds,de};
+            SrchConst sc= new SrchConst();
+            sc.setPeriod(d);
+            sc.setDataType(param.getDataType());
+
+            String r=util.search(xmlFile,sc);
+
+            return  r;
+        } catch (TransformerConfigurationException | SAXException | ParserConfigurationException | IOException | ParseException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 }

@@ -1,4 +1,5 @@
-
+var curImgBounds;
+var curData;
 //code for map (leaflet)
 var Common_accessToken= 'pk.eyJ1IjoidWZvcmljaGFyZCIsImEiOiJjamQwMDU2Y3kxajhkMnhvMXA0aXRtMzNkIn0.XAScbtETx_JRjPjFmo8Gkg';
 var t_row=L.tileLayer('https://api.tiles.mapbox.com/styles/v1/{id}/tiles/256/{z}/{x}/{y}?access_token={accessToken}', {
@@ -22,7 +23,17 @@ var t_label=L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/256/{z}/{x}
     accessToken: Common_accessToken
 });
 
-var mymap = L.map('map',{center:[40.72,-74.2],zoom:7,layers: [t_row,t_boundary, t_road,t_label]})
+var mymap = L.map('map',{
+        center:[40.72,-74.2],
+        zoom:7,
+        layers: [t_row,t_boundary, t_road,t_label],
+        fullscreenControl: true,
+        fullscreenControlOptions: {
+            position: 'topleft'
+        }
+    }
+) //初始地图定义
+
 //图层控制
 var baseMaps={
 
@@ -47,24 +58,25 @@ var ZoomViewer = L.Control.extend({
         return gauge;
     }
 });
-(new ZoomViewer({position:'bottomleft'})).addTo(mymap)
+(new ZoomViewer({position:'bottomleft'})).addTo(mymap);
 
 //        var singleOverlay=L.imageOverlay();
 var group=L.layerGroup();
-var rec
+var rec;
 function showImg(imageUrl,hf){
     var imageBounds=hf.bounds;
+    curImgBounds = imageBounds;
     //singleOverlay.setUrl(imageUrl).setBounds(imageBounds).addTo(mymap);
     var over=L.imageOverlay(imageUrl,imageBounds,{interactive:true});
-
     //hover特效
-    rec=L.rectangle(imageBounds,{color: "#ff7800", weight: 1,opacity:0,fillOpacity:0})//.addTo(mymap);
+    rec=L.rectangle(imageBounds,{color: "#ff7800", weight: 0.4,opacity:0,fillOpacity:0})//.addTo(mymap);
     rec.on({
+        mousedown:showDataValue,
         mouseover:highlight,
         mouseout:reset_highlight
-    })
+    });
 
-    group.clearLayers().addLayer(over).addLayer(rec).addTo(mymap);
+    group.clearLayers().addLayer(rec).addLayer(over).addTo(mymap);
     mymap.fitBounds(imageBounds);
 
     info.update(hf);
@@ -75,12 +87,105 @@ function highlight(e){
 function reset_highlight(e){
     e.target.setStyle({opacity:0});
 }
+function showDataValue(e){
+    // try{
+        var cur_lat = e.latlng.lat;
+        var cur_lng = e.latlng.lng;
+        var lat_min = curImgBounds[0][0];
+        var lat_max = curImgBounds[1][0];
+        var lon_min = curImgBounds[0][1];
+        var lon_max = curImgBounds[1][1];
 
+    // console.log((cur_lng - lon_min)/(lon_max-lon_min) +"||"+(lat_max - cur_lat)/(lat_max-lat_min));
+        var data_x ;
+        var data_y ;
+        var value;
+        if(curData.type == 2){
+            if(lat_min > lat_max){
+                var t1=lat_min;
+                lat_min=lat_max;
+                lat_max=t1;
+            }if(lon_min > lon_max){
+                var t2=lon_min;
+                lon_min=lon_max;
+                lon_max=t2;
+            }
+            data_x = Math.round(curData.m_nCols * (cur_lng - lon_min)/(lon_max-lon_min)) + curData.m_llx;
+            data_y = Math.round(curData.m_nRows * (lat_max - cur_lat)/(lat_max-lat_min)) + curData.m_lly;
+            value = curData.m_data[data_x][data_y];
+            console.log(data_x+"||"+data_y + "::"+ value);
+        }else if(curData.type == 3){
+            // var azimuth = curData.azimuth;
+            var gateNum = curData.gNum;
+            //到中心的位置坐标
+            data_x = ((lon_max + lon_min)/2 - cur_lng)*2/(lon_max-lon_min);
+            data_y = (cur_lat - (lat_max + lat_min)/2)*2/(lat_max-lat_min);
+            //直角坐标转参心坐标
+            var data_azi = Math.round(Math.atan2(data_x,data_y) / Math.PI * 180) + 180;
+            var data_gate = Math.round(Math.sqrt(Math.pow(data_x,2)+Math.pow(data_y,2)) *gateNum);
+            if(data_gate <= gateNum){
+                value = curData.m_data[data_gate + data_azi * gateNum];
+                console.log(data_azi + "||" + data_gate + "::"+value);
+            }
+
+//             for(var i=0;i<azimuth.length;i++){
+// //            System.out.println(azimuth[i]);
+//                 for (var j = 0;j < gateNum;j++){
+//                     rv = data[i * gateNum + j];
+//                     // if (rv == rv) {
+//                     //     v = (int)rv;
+//                     // } else {
+//                     //     v = -1000;
+//                     // }
+// //                System.out.println(v);
+//                     offX = (int)(gateNum + Math.cos((azimuth[i] - 90) / 180 * Math.PI) * j);
+//                     offY = (int)(gateNum + Math.sin((azimuth[i] - 90) / 180 * Math.PI) * j);
+//                 }
+//             }
+
+        }
+
+    // }catch(e){}
+}
+//经纬网
+// Add a basic graticule with divisions every 20 degrees
+// as a layer on a map
+// L.graticule().addTo(mymap);
+
+// Specify divisions every 10 degrees
+// L.graticule({ interval: 10 }).addTo(map);
+
+//Specify bold red lines instead of thin grey lines
+L.graticule({
+    style: {
+        color: '#222',
+        weight: 0.5
+    }
+}).addTo(mymap);
+
+
+
+/*********************             文件控制            ********************/
 //        var fileList=[];
 var testfiles=["KFWD_SDUS64_NCZGRK_201208150217",
     "SATE_L2_F2G_VISSR_MWB_LBT_SEC_LCN-IR2-20170527-0100.AWX",
     "KEWX_SDUS54_N0VEWX_201707270600"]
-getFileList();
+/******** 入口 ********/
+refrashFileList();
+
+function refrashFileList(){
+    $.ajax({
+        url:'/radar/rest/r/files/list',
+        type:"GET",
+        // async:false,
+        success:function(result){
+            var json=JSON.parse(result);
+//                        fileList=json;
+            init(json);
+            initInfo();
+        }
+    });
+}
 
 function init(files){
     //var $ul = $('#list:first');//console.log(files);
@@ -95,8 +200,9 @@ function init(files){
             $(this).parent().find('.tab_containt').addClass("tab_show")
         })
         //填充文件名
+        var containt=$dom.find('.tab_containt').empty();
         for(var i=0;i<files[f].length;i++){
-            $dom.find('.tab_containt').append("<li><a class='file'>"+files[f][i]+"</a></li>")
+            containt.append("<li><a class='file'>"+files[f][i]+"</a></li>")
         }
         k++
     }
@@ -111,7 +217,7 @@ function init(files){
 }
 
 var info = L.control();
-function initInfo(){
+function initInfo(){ //信息框
     info.onAdd = function (map) {
         this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
         this.update();
@@ -125,7 +231,7 @@ function initInfo(){
 
     info.addTo(mymap);
 }
-//列表项
+//设置列表项点击事件
 function setClickEach(dom){
     dom.click(function(){
         getData($(this).html());
@@ -134,19 +240,6 @@ function setClickEach(dom){
     })
 }
 
-function getFileList(){
-    $.ajax({
-        url:'/radar/rest/r/files/list',
-        type:"GET",
-        // async:false,
-        success:function(result){
-            var json=JSON.parse(result);
-//                        fileList=json;
-            init(json);
-            initInfo();
-        }
-    });
-}
 function getData(file){
     var json;
     $.ajax({
@@ -159,24 +252,15 @@ function getData(file){
             var bounds=hf.bounds;
             var img=json.imgUrl;
             showImg(img,hf);
-            // switch(type){
-            // case 1:
-            // c=createGridImage_Satellite(array,array[0].length,array.length);
-            // break;
-            // case 2:
-            // c=createGridImage_Radar(array,array[0].length,array.length);
-            // break;
-            // case 3:
-            // c=createRadialImage(array,data.azimuth,data.gNum);
-            // break;
-            // }
-            // console.log("getData:"+c.width);
-            // setStyle(c);
+
+            curData = json.imgData
+            curData.type = json.imgType;
+            console.log(curData)
         }
     });
 }
 
-//gallery
+/**********************播放*************************/
 var key;
 var index=0;
 var listData;
@@ -206,7 +290,7 @@ function playGallery(){
                     console.log("success")
                     json = JSON.parse(result)
                     var hf = json.headfile;
-                    var bounds = hf.bounds;
+                    // var bounds = hf.bounds;
                     var img = json.imgUrl;
                     listData[i]=new Object();
                     listData[i].hf=hf;
@@ -215,12 +299,12 @@ function playGallery(){
             })
         }
 //                console.log(chooseList.length+";;"+listData.length)
-        for(var i=0;i<chooseList.length;i++){
-            console.log(listData[i]);
-        }
+//         for(var i=0;i<chooseList.length;i++){
+//             console.log(listData[i]);
+//         }
         key=setInterval(function () {
             if(index<chooseList.length){
-                console.log(listData[index].img)
+                console.log(listData[index].img);
                 showImg(listData[index].img,listData[index].hf);
                 index++;
             }else{
@@ -244,7 +328,7 @@ function pauseGallery(){
     index=0;
 
 }
-//手动挑选
+/*********************播放前的手动挑选************************/
 function chooseFile(dom){
     setOverlay()
     chooseList=new Array();
@@ -273,6 +357,7 @@ function setClickCancel(dom){
         setClickChoose(dom);
     })
 }
+//高亮
 function setOverlay(){
     $('#left_play').addClass('showAboveOverlay');
     $('#list').addClass('showAboveOverlay');
@@ -284,30 +369,62 @@ function resetOverlay(){
     $('#left_play').removeClass('showAboveOverlay');
 }
 
-//搜索
+/************************搜索 **************************/
+var searchResult;
 var searchShowflag=false;
 function taggleSearchForm(){
     if(searchShowflag){
-        $('.toolbar').animate({height:"60px"})
-        $('#search_form').removeClass("search_show").addClass("search_hide")
+        $('.toolbar').animate({height:"60px"});
+        $('#search').removeClass("search_show").addClass("search_hide");
         searchShowflag=false
     }else{
-        $('.toolbar').animate({height:"160px"})
-        $('#search_form').removeClass("search_hide").addClass("search_show")
-        searchShowflag=true
+        $('.toolbar').animate({height:"160px"});
+        $('#search').removeClass("search_hide").addClass("search_show");
+        searchShowflag=true;
     }
 }
 function do_search(){
-    var params={"timeStart":$('#time_start').val(),
-        "timeEnd":$('#time_end').val()};
-
+    var dataType = $('.listActive').find('.tab_btn').html();
+    var ts=new Date($('#time_start').val()).toISOString();
+    var te=new Date($('#time_end').val()).toISOString();
+    var params={
+        dataType:dataType,
+        timeStart:ts,
+        timeEnd:te};
+    var refrash=function (file) {
+        $('div[id ^= "list_tab_"]').each(function(){
+            var k = 0;
+            //文件列表选项卡
+            var $dom = $($(this)[k++]);
+            var $tap = $dom.find('.tab_btn');
+            if($tap.html()===file.doc){
+                //填充文件名
+                var containt = $dom.find('.tab_containt').empty();
+                for(var i=0;i<file.files.length;i++){
+                    containt.append("<li><a class='file'>"+file.files[i]+"</a></li>")
+                }
+                containt.find('.file').each(function(){
+                    setClickEach($(this));
+                });
+            }
+        })
+    }
     $.ajax({
         type: "POST",
-        url: "/radar/rest/r/files/",
-        data: params,
-        dataType : "json",
+        url: "/radar/rest/r/files/search",
+        data: JSON.stringify(params),
+        contentType:"application/json",
         success: function(result){
-
+            var json = JSON.parse(result).AllFiles;
+            // console.log(json);
+            if(json!==undefined && json!==null){
+                refrash(json);
+            }
+            $('#crumb_list').removeClass('search_hide')//.find('span').html($('#time_start').val()+"TO"+$('#time_end').val());
         }
     });
+}
+function cancelSearch(){
+    $('#crumb_list').addClass('search_hide');
+    refrashFileList();
 }

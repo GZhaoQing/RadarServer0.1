@@ -37,13 +37,34 @@ public class FileParser {
 //    public RadarFile parseWithImg(String fileIn) throws IOException {
 //        return parseWithImg(fileIn,null);
 //    }
+    public RadarHeadfile readBrief4XML(String fileIn) throws IOException {
+        //取得文件名
+        int pos=fileIn.lastIndexOf('\\');
+        String name=fileIn.substring(pos+1);
+        fName=name;//文件名
+        System.out.println(fName);
+        RadarHeadfile hFile = new RadarHeadfile();
+        NetcdfDataset ncds=null;
+        try {
+            ncds= NetcdfDataset.openDataset(fileIn);
+            hFile=readBriefHeadInfo(ncds);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }finally {
+            if(ncds!=null){
+                ncds.close();
+            }
+        }
+        return hFile;
+    }
+
     public RadarFile readWithImg(String fileIn,String imagePath) throws IOException {
         //取得文件名
         int pos=fileIn.lastIndexOf("/");
         String name=fileIn.substring(pos+1);
         fName=name;//文件名
         RadarFile radarFile=new RadarFile();
-        RadarHeadfile hFile=new RadarHeadfile();
+        RadarHeadfile hFile;
         NetcdfDataset ncds=null;
         try {
             ncds= NetcdfDataset.openDataset(fileIn);
@@ -97,6 +118,13 @@ public class FileParser {
         return null;
     }
 
+    private RadarHeadfile readBriefHeadInfo(NetcdfFile ncFile){
+        RadarHeadfile hFile=new RadarHeadfile();
+        hFile.setBounds(getExtend(ncFile.getGlobalAttributes()));
+        hFile.setTime(getTime(ncFile.getGlobalAttributes()));
+        hFile.setName(fName);
+        return hFile;
+    }
     private RadarHeadfile readHeadInfo(NetcdfFile ncFile){
         RadarHeadfile hFile=new RadarHeadfile();
         hFile.setDimention(readDimensions(ncFile.getDimensions()));
