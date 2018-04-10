@@ -64,9 +64,9 @@ public class RasterGridBuilder {
         }
         //data rebuild
         curData=new Byte[nRows][nCols];
-        for(int i=0;i<nRows;i++){
-            for(int j=0;j<nCols;j++){
-                curData[i][j]=array.getByte(i*nRows+j);
+        for(int i=0;i<nCols;i++){
+            for(int j=0;j<nRows;j++){
+                curData[i][j]=array.getByte(j*nRows+i);
             }
         }
 

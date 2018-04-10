@@ -1,32 +1,34 @@
 var curImgBounds;
 var curData;
 //code for map (leaflet)
+var tile_group=L.layerGroup();
 var Common_accessToken= 'pk.eyJ1IjoidWZvcmljaGFyZCIsImEiOiJjamQwMDU2Y3kxajhkMnhvMXA0aXRtMzNkIn0.XAScbtETx_JRjPjFmo8Gkg';
 var t_row=L.tileLayer('https://api.tiles.mapbox.com/styles/v1/{id}/tiles/256/{z}/{x}/{y}?access_token={accessToken}', {
     maxZoom: 18,
     id:'uforichard/cjdygtkk90y372sn5qk9hngk7',
     accessToken: Common_accessToken
-});
+}).addTo(tile_group);
 var t_boundary=L.tileLayer('https://api.tiles.mapbox.com/styles/v1/{id}/tiles/256/{z}/{x}/{y}?access_token={accessToken}', {
     maxZoom: 18,
     id:'uforichard/cjdyfqezq8xek2sm1dnu0h65m',
     accessToken: Common_accessToken
-});
+}).addTo(tile_group);
 var t_road=L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/256/{z}/{x}/{y}?&access_token={accessToken}', {
     maxZoom: 18,
     id:'uforichard/cjdy8tmjw0idw2rrwrhgsfohb',
     accessToken: Common_accessToken
-});
+}).addTo(tile_group);
 var t_label=L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/256/{z}/{x}/{y}?&access_token={accessToken}', {
     maxZoom: 18,
     id:'uforichard/cjdygdk658y032sm1mytzw4yx',
     accessToken: Common_accessToken
-});
+}).addTo(tile_group);
 
+//layers: [t_row,t_boundary, t_road,t_label],
 var mymap = L.map('map',{
         center:[40.72,-74.2],
         zoom:7,
-        layers: [t_row,t_boundary, t_road,t_label],
+        layers: tile_group,
         fullscreenControl: true,
         fullscreenControlOptions: {
             position: 'topleft'
@@ -63,15 +65,17 @@ var ZoomViewer = L.Control.extend({
 //        var singleOverlay=L.imageOverlay();
 var group=L.layerGroup();
 var rec;
+var info = L.control();
+var pixelValControl = new L.Control.PixelVal().addTo(mymap);
+var popup = L.popup();
 function showImg(imageUrl,hf){
     var imageBounds=hf.bounds;
     curImgBounds = imageBounds;
     //singleOverlay.setUrl(imageUrl).setBounds(imageBounds).addTo(mymap);
     var over=L.imageOverlay(imageUrl,imageBounds,{interactive:true});
     //hover特效
-    rec=L.rectangle(imageBounds,{color: "#ff7800", weight: 0.4,opacity:0,fillOpacity:0})//.addTo(mymap);
+    rec=L.rectangle(imageBounds,{color: "#ff7800", weight: 0.2,opacity:0,fillOpacity:0})//.addTo(mymap);
     rec.on({
-        mousedown:showDataValue,
         mouseover:highlight,
         mouseout:reset_highlight
     });
@@ -80,6 +84,13 @@ function showImg(imageUrl,hf){
     mymap.fitBounds(imageBounds);
 
     info.update(hf);
+
+    if(curData.type == 2||curData.type == 3){
+        pixelValControl.show();
+    }else{
+        pixelValControl.hide();
+    }
+
 }
 function highlight(e){
     e.target.setStyle({opacity:1});
@@ -87,6 +98,7 @@ function highlight(e){
 function reset_highlight(e){
     e.target.setStyle({opacity:0});
 }
+
 function showDataValue(e){
     // try{
         var cur_lat = e.latlng.lat;
@@ -96,11 +108,10 @@ function showDataValue(e){
         var lon_min = curImgBounds[0][1];
         var lon_max = curImgBounds[1][1];
 
-    // console.log((cur_lng - lon_min)/(lon_max-lon_min) +"||"+(lat_max - cur_lat)/(lat_max-lat_min));
         var data_x ;
         var data_y ;
         var value;
-        if(curData.type == 2){
+        if(curData.type == 2||curData.type == 3){
             if(lat_min > lat_max){
                 var t1=lat_min;
                 lat_min=lat_max;
@@ -114,38 +125,12 @@ function showDataValue(e){
             data_y = Math.round(curData.m_nRows * (lat_max - cur_lat)/(lat_max-lat_min)) + curData.m_lly;
             value = curData.m_data[data_x][data_y];
             console.log(data_x+"||"+data_y + "::"+ value);
-        }else if(curData.type == 3){
-            // var azimuth = curData.azimuth;
-            var gateNum = curData.gNum;
-            //到中心的位置坐标
-            data_x = ((lon_max + lon_min)/2 - cur_lng)*2/(lon_max-lon_min);
-            data_y = (cur_lat - (lat_max + lat_min)/2)*2/(lat_max-lat_min);
-            //直角坐标转参心坐标
-            var data_azi = Math.round(Math.atan2(data_x,data_y) / Math.PI * 180) + 180;
-            var data_gate = Math.round(Math.sqrt(Math.pow(data_x,2)+Math.pow(data_y,2)) *gateNum);
-            if(data_gate <= gateNum){
-                value = curData.m_data[data_gate + data_azi * gateNum];
-                console.log(data_azi + "||" + data_gate + "::"+value);
-            }
-
-//             for(var i=0;i<azimuth.length;i++){
-// //            System.out.println(azimuth[i]);
-//                 for (var j = 0;j < gateNum;j++){
-//                     rv = data[i * gateNum + j];
-//                     // if (rv == rv) {
-//                     //     v = (int)rv;
-//                     // } else {
-//                     //     v = -1000;
-//                     // }
-// //                System.out.println(v);
-//                     offX = (int)(gateNum + Math.cos((azimuth[i] - 90) / 180 * Math.PI) * j);
-//                     offY = (int)(gateNum + Math.sin((azimuth[i] - 90) / 180 * Math.PI) * j);
-//                 }
-//             }
+            popup.setLatLng([cur_lat,cur_lng])
+                .setContent('<p>lon:'+cur_lng.toFixed(2)+',lat:'+cur_lat.toFixed(2)+'<br />x:'+data_x+',y:'+data_y+'<br />value:'+value+'</p>')
+                .openOn(mymap);
+        }else if(curData.type == 1){
 
         }
-
-    // }catch(e){}
 }
 //经纬网
 // Add a basic graticule with divisions every 20 degrees
@@ -163,6 +148,20 @@ L.graticule({
     }
 }).addTo(mymap);
 
+//print
+var printer = L.easyPrint({
+    tileLayer: [t_row,t_boundary, t_road,t_label],
+    sizeModes: ['Current'],
+    filename: 'myMap',
+    exportOnly: true,
+    hideControlContainer: true
+}).addTo(mymap);
+// L.control.browserPrint({
+//     title: 'Just print me!',
+//     printLayer: tile_group,
+//     closePopupsOnPrint: false,
+//     printModesNames: {Portrait:"Portrait", Landscape:"Paysage", Auto:"Auto", Custom:"Séléctionnez la zone"}
+// }).addTo(mymap);
 
 
 /*********************             文件控制            ********************/
@@ -214,9 +213,12 @@ function init(files){
     for(var i=0;i<files.length/10;i++){
         $pages.append("<li><a>"+i+"</a></li>")
     }
+
+    //pixel value bar
+    pixelValControl.hide();
 }
 
-var info = L.control();
+
 function initInfo(){ //信息框
     info.onAdd = function (map) {
         this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
@@ -226,6 +228,7 @@ function initInfo(){ //信息框
     info.update = function (props) {
         this._div.innerHTML = '<h4>File Info</h4>' +  (props ?
             '<b>' + props.time + '</b><br />'
+            /*'<h5>透明度</h5><input id="opa_bar" style="range" max="100" min="0" value="100" oninput="change_transparency()">'*/
             : '');
     };
 
@@ -235,7 +238,7 @@ function initInfo(){ //信息框
 function setClickEach(dom){
     dom.click(function(){
         getData($(this).html());
-        $('.file').each(function(){$(this).removeClass("list_active")});
+        $('.file').each(function(){ $(this).removeClass("list_active") });
         $(this).addClass("list_active");
     })
 }
@@ -248,13 +251,14 @@ function getData(file){
         // async:false,
         success:function(result){
             json=JSON.parse(result)
+            curData = json.imgData
+            curData.type = json.imgType;
             var hf=json.headfile;
             var bounds=hf.bounds;
             var img=json.imgUrl;
             showImg(img,hf);
 
-            curData = json.imgData
-            curData.type = json.imgType;
+
             console.log(curData)
         }
     });
@@ -427,4 +431,9 @@ function do_search(){
 function cancelSearch(){
     $('#crumb_list').addClass('search_hide');
     refrashFileList();
+}
+
+function change_transparency(){
+    var value = $('#opa_bar').val();
+    group.setStyle({opacity:value});
 }
