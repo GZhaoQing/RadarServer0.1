@@ -11,6 +11,7 @@ import org.xml.sax.SAXException;
 
 
 import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -26,50 +27,85 @@ import java.util.*;
 
 @Path("/r")
 public class MyResource {
-
     @GET
-    @Path("/files/list")
+    @Path("/files/allList")
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.APPLICATION_JSON)
-    public String getFileList(@Context ServletContext context) throws MalformedURLException, JsonProcessingException {
-        String filePath = context.getResource("WEB-INF\\classes\\dataFiles").getPath();
-        File f=new File(filePath);
-        FileFilter docFilter=new FileFilter(){
-            public boolean accept(File pathname) {
-                if(pathname.isDirectory()){
-                    return true;
-                }else{
-                    return false;
-                }
-            }
-        };
-        File[] docList = f.listFiles(docFilter);
-        FileFilter fileFilter=new FileFilter(){
-            public boolean accept(File pathname) {
-                if(pathname.isFile()){
-                    return true;
-                }else{
-                    return false;
-                }
-            }
-        };
-        Map<String,List<String>> map=new HashMap<>();
-        for(int i=0;i<docList.length;i++){
-            String[] files=filesToStrings(docList[i].listFiles(fileFilter));
-            map.put(docList[i].getName(),Arrays.asList(files));
+    public String getFileAllList(@Context ServletContext context){
+        try{
+            String path=context.getResource("WEB-INF\\classes\\fileList.xml").getPath();
+            File xmlFile = new File(path);
+            DfUtil util = new DfUtil();
+            String r=util.getFileNameList(xmlFile);
+
+            return  r;
+        }catch (TransformerConfigurationException | SAXException | ParserConfigurationException | IOException e) {
+            e.printStackTrace();
         }
-        ObjectMapper mapper = new ObjectMapper();
-        String json = mapper.writeValueAsString(map);
-        return json;
+        return null;
     }
-    private String[] filesToStrings(File[] list){
-        String[] array=new String[list.length];
-        int i=0;
-        for(File e:list){
-            array[i++]=e.getName();
+    @GET
+    @Path("/files/allList/{type}")
+    @Produces(MediaType.TEXT_PLAIN)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public String getSingleList(@PathParam("type")String type,@Context ServletContext context){
+        try{
+            String path=context.getResource("WEB-INF\\classes\\fileList.xml").getPath();
+            File xmlFile = new File(path);
+            DfUtil util = new DfUtil();
+            SrchConst sc= new SrchConst();
+            sc.setDataType(type);
+            String r=util.search(xmlFile,sc);
+
+            return  r;
+        }catch (TransformerConfigurationException | SAXException | ParserConfigurationException | IOException e) {
+            e.printStackTrace();
         }
-        return array;
+        return null;
     }
+//    @GET
+//    @Path("/files/list")
+//    @Produces(MediaType.TEXT_PLAIN)
+//    @Consumes(MediaType.APPLICATION_JSON)
+//    public String getFileList(@Context ServletContext context) throws MalformedURLException, JsonProcessingException {
+//        String filePath = context.getResource("WEB-INF\\classes\\dataFiles").getPath();
+//        File f=new File(filePath);
+//        FileFilter docFilter=new FileFilter(){
+//            public boolean accept(File pathname) {
+//                if(pathname.isDirectory()){
+//                    return true;
+//                }else{
+//                    return false;
+//                }
+//            }
+//        };
+//        File[] docList = f.listFiles(docFilter);
+//        FileFilter fileFilter=new FileFilter(){
+//            public boolean accept(File pathname) {
+//                if(pathname.isFile()){
+//                    return true;
+//                }else{
+//                    return false;
+//                }
+//            }
+//        };
+//        Map<String,List<String>> map=new HashMap<>();
+//        for(int i=0;i<docList.length;i++){
+//            String[] files=filesToStrings(docList[i].listFiles(fileFilter));
+//            map.put(docList[i].getName(),Arrays.asList(files));
+//        }
+//        ObjectMapper mapper = new ObjectMapper();
+//        String json = mapper.writeValueAsString(map);
+//        return json;
+//    }
+//    private String[] filesToStrings(File[] list){
+//        String[] array=new String[list.length];
+//        int i=0;
+//        for(File e:list){
+//            array[i++]=e.getName();
+//        }
+//        return array;
+//    }
 
     @GET
     @Path("/files/{fileName}")
@@ -121,7 +157,7 @@ public class MyResource {
     @Path("/files/search")
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.APPLICATION_JSON)
-    public String doSearch(String p,@Context ServletContext context) {
+    public String doDateSearch(String p,@Context ServletContext context) {
         try {
             ObjectMapper mapper = new ObjectMapper();
             SearchParam param =mapper.readValue(p,SearchParam.class);
@@ -148,5 +184,36 @@ public class MyResource {
         }
         return null;
     }
+    @POST
+    @Path("/files/geosearch")
+    @Produces(MediaType.TEXT_PLAIN)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public String doGeoSearch(String p, @Context ServletContext context) {
+        try {
 
+            System.out.println(p);
+            ObjectMapper mapper = new ObjectMapper();
+            GeoParam param =mapper.readValue(p,GeoParam.class);
+            System.out.println(param);
+//            String timeEnd = param.getTimeEnd();
+//
+//            String path=context.getResource("WEB-INF\\classes\\fileList.xml").getPath();
+//            File xmlFile = new File(path);
+//            DfUtil util = new DfUtil();
+//            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+//            Date ds= format.parse(timeStart);
+//            Date de= format.parse(timeEnd);
+//            Date[] d = {ds,de};
+//            SrchConst sc= new SrchConst();
+//            sc.setPeriod(d);
+//            sc.setDataType(param.getDataType());
+//
+//            String r=util.search(xmlFile,sc);
+//
+//            return  r;
+        } catch (/*TransformerConfigurationException | SAXException | ParserConfigurationException |*/ IOException /*| ParseException*/ e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }

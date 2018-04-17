@@ -1,3 +1,8 @@
+var DataList = {
+    curImgBounds:undefined,
+    curData:undefined,
+};
+
 var curImgBounds;
 var curData;
 //code for map (leaflet)
@@ -70,7 +75,7 @@ var pixelValControl = new L.Control.PixelVal().addTo(mymap);
 var popup = L.popup();
 function showImg(imageUrl,hf){
     var imageBounds=hf.bounds;
-    curImgBounds = imageBounds;
+    DataList.curImgBounds = imageBounds;
     //singleOverlay.setUrl(imageUrl).setBounds(imageBounds).addTo(mymap);
     var over=L.imageOverlay(imageUrl,imageBounds,{interactive:true});
     //hover特效
@@ -84,7 +89,7 @@ function showImg(imageUrl,hf){
     mymap.fitBounds(imageBounds);
 
     info.update(hf);
-
+    // var curData = DataList.curData;
     if(curData.type == 2||curData.type == 3){
         pixelValControl.show();
     }else{
@@ -103,6 +108,7 @@ function showDataValue(e){
     // try{
         var cur_lat = e.latlng.lat;
         var cur_lng = e.latlng.lng;
+        var curImgBounds = DataList.curImgBounds;
         var lat_min = curImgBounds[0][0];
         var lat_max = curImgBounds[1][0];
         var lon_min = curImgBounds[0][1];
@@ -111,6 +117,7 @@ function showDataValue(e){
         var data_x ;
         var data_y ;
         var value;
+        // var curData = DataList.curData;
         if(curData.type == 2||curData.type == 3){
             if(lat_min > lat_max){
                 var t1=lat_min;
@@ -162,7 +169,28 @@ var printer = L.easyPrint({
 //     closePopupsOnPrint: false,
 //     printModesNames: {Portrait:"Portrait", Landscape:"Paysage", Auto:"Auto", Custom:"Séléctionnez la zone"}
 // }).addTo(mymap);
-
+/************** draw *************/
+drawnItems = L.featureGroup().addTo(mymap);
+mymap.addControl(new L.Control.Draw({
+    position: 'bottomleft',
+    edit: {
+        featureGroup: drawnItems,
+        poly: {
+            allowIntersection: false
+        }
+    },
+    draw: {
+        circlemarker: false,
+        polygon: {
+            allowIntersection: false,
+            showArea: true
+        }
+    }
+}));
+mymap.on(L.Draw.Event.CREATED, function (event) {
+    var layer = event.layer;
+    drawnItems.addLayer(layer);
+});
 
 /*********************             文件控制            ********************/
 //        var fileList=[];
@@ -172,52 +200,109 @@ var testfiles=["KFWD_SDUS64_NCZGRK_201208150217",
 /******** 入口 ********/
 refrashFileList();
 
-function refrashFileList(){
-    $.ajax({
-        url:'/radar/rest/r/files/list',
-        type:"GET",
-        // async:false,
-        success:function(result){
-            var json=JSON.parse(result);
-//                        fileList=json;
-            init(json);
-            initInfo();
-        }
-    });
+function refrashFileList(e){
+    if(e === undefined || e === null){
+        $.ajax({
+            url:'/radar/rest/r/files/allList',
+            type:"GET",
+            // async:false,
+            success:function(result){
+                var json=JSON.parse(result);
+                init(json.files);
+                initInfo();
+            }
+        });
+    }else{
+        $.ajax({
+            url:'/radar/rest/r/files/allList/'+e,
+            type:"GET",
+            // async:false,
+            success:function(result){
+                var json=JSON.parse(result);
+                refrash(json.files);
+                initInfo();
+            }
+        });
+    }
+    var refrash=function (file) {
+        var k = 0;
+        var params = file.param;
+        var text = params.timeStart + "----" + params.timeEnd;
+        $('div[id ^= "list_tab_"]').each(function(){
+            //文件列表选项卡
+            var $dom = $($(this)[k++]);
+            var $tap = $dom.find('.tab_btn');
+            if($tap.html()===file.doc){
+                //填充文件名
+                var containt = $dom.find('.tab_containt');
+                for(var i=0;i<file.files.length;i++){
+                    containt.append("<li><a class='file'>"+file.files[i]+"</a></li>");
+                }
+                containt.find('.file').each(function(){
+                    setClickEach($(this));
+                });
+            }
+        })
+    }
 }
 
 function init(files){
-    //var $ul = $('#list:first');//console.log(files);
-    var k=0;
-    for(var f in files){
-        //文件列表选项卡
+    // var $ul = $('#list:first');
+    for(var k = 0; k<files.length; k++){
         var $dom=$('#list_tab_'+k);
-        $dom.find('.tab_btn').html(f.toString()).bind('click',function(){
+        $dom.find('.tab_btn').html(files[k].doc.toString()).bind('click',function(){
             $('.tab_containt').each(function(){
                 $(this).removeClass("tab_show")
             })
             $(this).parent().find('.tab_containt').addClass("tab_show")
         })
         //填充文件名
-        var containt=$dom.find('.tab_containt').empty();
-        for(var i=0;i<files[f].length;i++){
-            containt.append("<li><a class='file'>"+files[f][i]+"</a></li>")
+        var containt = $dom.find('.tab_containt').empty();
+        for(var i=0; i<files[k].files.length; i++){
+            containt.append("<li><a class='file'>"+files[k].files[i]+"</a></li>")
         }
-        k++
     }
-
     $('.file').each(function(){
         setClickEach($(this));
     });
-    var $pages=$('#page_wrap.pages');
-    for(var i=0;i<files.length/10;i++){
-        $pages.append("<li><a>"+i+"</a></li>")
-    }
+    // var $pages=$('#page_wrap.pages');
+    // for(var i=0;i<files.length/10;i++){
+    //     $pages.append("<li><a>"+i+"</a></li>")
+    // }
 
     //pixel value bar
     pixelValControl.hide();
-}
 
+    //var $ul = $('#list:first');//console.log(files);
+    // var k=0;
+    // for(var f in files){
+    //     //文件列表选项卡
+    //     var $dom=$('#list_tab_'+k);
+    //     $dom.find('.tab_btn').html(f.toString()).bind('click',function(){
+    //         $('.tab_containt').each(function(){
+    //             $(this).removeClass("tab_show")
+    //         })
+    //         $(this).parent().find('.tab_containt').addClass("tab_show")
+    //     })
+    //     //填充文件名
+    //     var containt=$dom.find('.tab_containt').empty();
+    //     for(var i=0;i<files[f].length;i++){
+    //         containt.append("<li><a class='file'>"+files[f][i]+"</a></li>")
+    //     }
+    //     k++
+    // }
+    //
+    // $('.file').each(function(){
+    //     setClickEach($(this));
+    // });
+    // var $pages=$('#page_wrap.pages');
+    // for(var i=0;i<files.length/10;i++){
+    //     $pages.append("<li><a>"+i+"</a></li>")
+    // }
+    //
+    // //pixel value bar
+    // pixelValControl.hide();
+}
 
 function initInfo(){ //信息框
     info.onAdd = function (map) {
@@ -257,9 +342,7 @@ function getData(file){
             var bounds=hf.bounds;
             var img=json.imgUrl;
             showImg(img,hf);
-
-
-            console.log(curData)
+            // console.log(DataList.curData)
         }
     });
 }
@@ -277,8 +360,7 @@ Array.prototype.indexOf = function(val) {
     return -1;
 };
 function playGallery(){
-
-    resetOverlay()
+    resetOverlay();
     if(play_flag===false){
         //前端效果变动
         $('#left_play').css("background-image","Url('images/player-pause.svg')");
@@ -292,13 +374,14 @@ function playGallery(){
                 async:false,
                 success: function (result) {
                     console.log("success")
-                    json = JSON.parse(result)
+                    json = JSON.parse(result);
                     var hf = json.headfile;
                     // var bounds = hf.bounds;
                     var img = json.imgUrl;
                     listData[i]=new Object();
                     listData[i].hf=hf;
                     listData[i].img=img;
+                    listData[i].imgType=json.imgType;
                 }
             })
         }
@@ -309,10 +392,11 @@ function playGallery(){
         key=setInterval(function () {
             if(index<chooseList.length){
                 console.log(listData[index].img);
+                curData = listData[index].imgType;
                 showImg(listData[index].img,listData[index].hf);
                 index++;
             }else{
-                pauseGallery()
+                pauseGallery();
             }
         },1000)
     }else if(play_flag===true){
@@ -396,17 +480,26 @@ function do_search(){
         timeStart:ts,
         timeEnd:te};
     var refrash=function (file) {
+        var k = 0;
+        var params = file.param;
+        var text = params.timeStart + "----" + params.timeEnd;
         $('div[id ^= "list_tab_"]').each(function(){
-            var k = 0;
             //文件列表选项卡
             var $dom = $($(this)[k++]);
             var $tap = $dom.find('.tab_btn');
             if($tap.html()===file.doc){
                 //填充文件名
-                var containt = $dom.find('.tab_containt').empty();
-                for(var i=0;i<file.files.length;i++){
-                    containt.append("<li><a class='file'>"+file.files[i]+"</a></li>")
+                var containt = $dom.find('.tab_containt');
+                if(containt.find(".search_result_tab").length === 0){
+                    containt.empty();
                 }
+                containt.append('<li class="search_result_tab"><h3  onclick="taggleSearchResultList(this)"><a onclick="cancelSingleSearch(this)" >X</a>'+ text + '<i class="arrowRot"></i></h3></li>');
+                var ul = document.createElement("ul");
+                var $ul = $(ul).addClass("search_result_containt");
+                for(var i=0;i<file.files.length;i++){
+                    $ul.append("<li><a class='file'>"+file.files[i]+"</a></li>");
+                }
+                containt.append($ul);
                 containt.find('.file').each(function(){
                     setClickEach($(this));
                 });
@@ -422,6 +515,7 @@ function do_search(){
             var json = JSON.parse(result).AllFiles;
             // console.log(json);
             if(json!==undefined && json!==null){
+                json.param = params;
                 refrash(json);
             }
             $('#crumb_list').removeClass('search_hide')//.find('span').html($('#time_start').val()+"TO"+$('#time_end').val());

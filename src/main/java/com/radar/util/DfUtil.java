@@ -41,9 +41,35 @@ public class DfUtil {
         tf.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
         tf.setOutputProperty(OutputKeys.INDENT, "yes");
     }
+
+    /**********从xml获取所有文件名**********/
+    public String getFileNameList(File xmlFile) throws IOException, SAXException {
+        AllFileHandler ah = new AllFileHandler();
+        parser.parse(xmlFile,ah);
+        return ah.getResultSw().toString();
+    }
+    /*找寻目录下所有文件*/
+    public FileDom getAllInnerFiles(File file) throws IOException {
+        FileDom rootDom = new FileDom();
+        File[] fileList = file.listFiles(fileFilter);
+        File[] docList = file.listFiles(docFilter);
+
+        rootDom.setName(file.getName());
+        if(fileList!=null && fileList.length > 0){
+            rootDom.setInnerFiles(readInnerFiles(fileList));
+        }
+        if(docList!=null && docList.length>0){
+            List<FileDom> dList = new ArrayList<>();
+            for(File f : docList){
+                dList.add(getAllInnerFiles(f));
+            }
+            rootDom.setChildren(dList);
+        }
+        return rootDom;
+    }
+    /********从dom模型到文件*********/
     public void writeXML(FileDom dom,File xmlFile) throws TransformerConfigurationException, SAXException {
         Result result = new StreamResult(xmlFile);
-//        handler = stf.newTransformerHandler();
         handler.setResult(result);
         handler.startDocument();
         handler.startElement("", "", "AllFiles", null);
@@ -51,6 +77,36 @@ public class DfUtil {
         handler.endElement("","","AllFiles");
         handler.endDocument();
     }
+
+    /*******时间查询*******/
+    public String search(File xmlFile,SrchConst sc) throws IOException, SAXException {
+        ReaderHandler rh = new ReaderHandler(sc);
+        parser.parse(xmlFile,rh);
+
+        return rh.getResultSw().toString();
+    }
+
+    /*******************私有方法******************/
+    /*只获取文件夹*/
+    private FileFilter docFilter = new FileFilter(){
+        public boolean accept(File pathname) {
+            if(pathname.isDirectory()){
+                return true;
+            }else{
+                return false;
+            }
+        }
+    };
+    /*只获取文件*/
+    private FileFilter fileFilter=new FileFilter(){
+        public boolean accept(File pathname) {
+            if(pathname.isFile()){
+                return true;
+            }else{
+                return false;
+            }
+        }
+    };
     private void writeXML(FileDom dom) throws SAXException {
         String name=dom.getName();
         AttributesImpl attr = new AttributesImpl();
@@ -79,60 +135,12 @@ public class DfUtil {
             handler.endElement("","","file");
         }
     }
-
-
-   /*只获取文件夹*/
-    private FileFilter docFilter = new FileFilter(){
-        public boolean accept(File pathname) {
-            if(pathname.isDirectory()){
-                return true;
-            }else{
-                return false;
-            }
-        }
-    };
-    /*只获取文件*/
-    private FileFilter fileFilter=new FileFilter(){
-        public boolean accept(File pathname) {
-            if(pathname.isFile()){
-                return true;
-            }else{
-                return false;
-            }
-        }
-    };
-    /*找寻目录下所有文件*/
-    public FileDom getAllInnerFiles(File file) throws IOException {
-        FileDom rootDom = new FileDom();
-        File[] fileList = file.listFiles(fileFilter);
-        File[] docList = file.listFiles(docFilter);
-
-        rootDom.setName(file.getName());
-        if(fileList!=null && fileList.length > 0){
-            rootDom.setInnerFiles(readInnerFiles(fileList));
-        }
-        if(docList!=null && docList.length>0){
-            List<FileDom> dList = new ArrayList<>();
-            for(File f : docList){
-                dList.add(getAllInnerFiles(f));
-            }
-            rootDom.setChildren(dList);
-        }
-        return rootDom;
-    }
     private List<RadarHeadfile> readInnerFiles(File[] list) throws IOException {
         List<RadarHeadfile> array=new ArrayList<>();
         for(File e:list){
             array.add(fp.readBrief4XML(e.getPath()));
         }
         return array;
-    }
-//Date[] dateRange,
-    public String search(File xmlFile,SrchConst sc) throws IOException, SAXException {
-        ReaderHandler rh = new ReaderHandler(sc);
-        parser.parse(xmlFile,rh);
-
-        return rh.getResultSw().toString();
     }
     private class ReaderHandler extends DefaultHandler{
         private ObjectMapper mapper=new ObjectMapper();
@@ -218,4 +226,74 @@ public class DfUtil {
             super.endDocument();
         }
     }
+    /*
+     遍历所有文件名
+    */
+    private class AllFileHandler extends DefaultHandler{
+        private ObjectMapper mapper = new ObjectMapper();
+        private StringWriter sw = new StringWriter();
+        private JsonGenerator generator;
+
+        private AllFileHandler() throws IOException {
+            JsonFactory jsonFactory= mapper.getFactory();
+            generator = jsonFactory.createGenerator(sw);
+        }
+
+        @Override
+        public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
+            super.startElement(uri, localName, qName, attributes);
+            if(qName.equals("AllFiles")){
+
+            }
+            if(qName.equals("doc")){
+                try {
+                    generator.writeStartObject();
+                    generator.writeStringField("doc",attributes.getValue(0));
+                    generator.writeFieldName("files");
+                    generator.writeStartArray();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if(qName.equals("file")){
+                try {
+                    generator.writeString(attributes.getValue(1));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        @Override
+        public void endElement(String uri, String localName, String qName) throws SAXException {
+            super.endElement(uri, localName, qName);
+            if(qName.equals("AllFiles")){
+                try {
+                    generator.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if(qName.equals("doc") ){
+                try {
+                    generator.writeEndArray();
+                    generator.writeEndObject();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if(qName.equals("file")){
+
+            }
+        }
+        private StringWriter getResultSw() {
+             return sw;
+        }
+
+        @Override
+        public void endDocument() throws SAXException {
+            super.endDocument();
+        }
+    }
+
 }
